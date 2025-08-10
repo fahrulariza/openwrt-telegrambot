@@ -10,15 +10,13 @@ TEMP_DIR="/tmp/bot_update"
 
 echo "Mulai mengunduh file..."
 
-# Buat direktori sementara dan pastikan bersih
 rm -rf "$TEMP_DIR"
 mkdir -p "$TEMP_DIR/cmd"
 
 # Daftar file yang akan diunduh
-FILES="bot.py VERSION run_bot.sh update.sh"
+FILES="bot.py VERSION run_bot.sh update.sh pre_run.sh restart.sh"
 CMD_FILES="akses.py dhcp_leases.py interface.py openclash.py reboot.py reload_bot.py status.py"
 
-# Unduh file utama
 for file in $FILES; do
   wget -qO "$TEMP_DIR/$file" "$REPO_URL/$file"
   if [ $? -ne 0 ]; then
@@ -27,7 +25,6 @@ for file in $FILES; do
   fi
 done
 
-# Unduh file di folder cmd
 for file in $CMD_FILES; do
   wget -qO "$TEMP_DIR/cmd/$file" "$REPO_URL/cmd/$file"
   if [ $? -ne 0 ]; then
@@ -38,28 +35,24 @@ done
 
 echo "Unduhan berhasil. Memasang file baru..."
 
-# Salin file baru ke direktori bot
 cp -f "$TEMP_DIR/bot.py" "$BOT_DIR/bot.py"
 cp -f "$TEMP_DIR/VERSION" "$BOT_DIR/VERSION"
 cp -f "$TEMP_DIR/run_bot.sh" "$BOT_DIR/run_bot.sh"
 cp -f "$TEMP_DIR/update.sh" "$BOT_DIR/update.sh"
+cp -f "$TEMP_DIR/pre_run.sh" "$BOT_DIR/pre_run.sh"
+cp -f "$TEMP_DIR/restart.sh" "$BOT_DIR/restart.sh"
 cp -f "$TEMP_DIR/cmd/"* "$BOT_DIR/cmd/"
 
-# Hapus direktori sementara
 rm -rf "$TEMP_DIR"
 
-# Perbaiki format dan izin eksekusi
-echo "Memperbaiki izin file..."
-chmod +x "$BOT_DIR/bot.py"
-chmod +x "$BOT_DIR/pre_run.sh"
-chmod +x "$BOT_DIR/restart.sh"
-chmod +x "$BOT_DIR/run_bot.sh"
-chmod +x "$BOT_DIR/update.sh"
-dos2unix "$BOT_DIR/bot.py"
-dos2unix "$BOT_DIR/pre_run.sh"
-dos2unix "$BOT_DIR/restart.sh"
-dos2unix "$BOT_DIR/run_bot.sh"
-dos2unix "$BOT_DIR/update.sh"
+echo "Memperbaiki izin dan format file..."
+SCRIPTS="bot.py pre_run.sh restart.sh run_bot.sh update.sh"
+for script in $SCRIPTS; do
+  if [ -f "$BOT_DIR/$script" ]; then
+    chmod +x "$BOT_DIR/$script"
+    dos2unix "$BOT_DIR/$script"
+  fi
+done
 
 echo "Pembaruan selesai. Memulai bot..."
 
