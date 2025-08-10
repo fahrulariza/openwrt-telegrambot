@@ -1,9 +1,21 @@
 #!/bin/sh
 
-# Jalankan bot.py dalam loop untuk memastikan bot selalu berjalan
-while true; do
-  echo "Menjalankan bot... $(date)"
-  python3 /www/assisten/bot/bot.py
-  echo "Bot berhenti. Akan dimulai ulang dalam 5 detik... $(date)"
-  sleep 5
-done
+case "$1" in
+  start)
+    echo "Menghentikan bot lama..."
+    killall python3 2>/dev/null
+    sleep 2
+    echo "Menjalankan bot baru..."
+    /usr/bin/python3 /www/assisten/bot/bot.py &
+    ;;
+  stop)
+    echo "Menghentikan bot..."
+    killall python3 2>/dev/null
+    ;;
+  *)
+    echo "Penggunaan: $0 {start|stop}"
+    exit 1
+    ;;
+esac
+
+exit 0
