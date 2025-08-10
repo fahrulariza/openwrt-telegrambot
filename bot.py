@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 # --- Konfigurasi Perangkat & Token ---
 DEVICE_ID = socket.gethostname().strip()
+os.environ['DEVICE_ID'] = DEVICE_ID # Set DEVICE_ID sebagai variabel lingkungan
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TOKEN_FILE = os.path.join(SCRIPT_DIR, "token.txt")
 AKSES_FILE = os.path.join(SCRIPT_DIR, "akses.txt")
@@ -122,16 +123,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception:
         pass
     
-    # Tambahkan sedikit jeda acak untuk mencegah tabrakan
     await asyncio.sleep(random.uniform(0.1, 0.5))
     
-    # Kirim pesan awal untuk deteksi hanya jika belum ada yang memulai
     if 'discovery_message_id' not in context.chat_data:
         initial_message = await update.effective_message.reply_text("Mencari perangkat aktif...")
         context.chat_data['discovery_message_id'] = initial_message.message_id
         context.chat_data['active_devices'] = {DEVICE_ID}
 
-        # Kirim sinyal kehadiran bot lokal
         await context.bot.send_message(
             chat_id=chat_id,
             text=f"ACTIVE|{DEVICE_ID}",
@@ -141,7 +139,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     
     await asyncio.sleep(3)
     
-    # Hanya bot yang "menang" (memiliki discovery_message_id) yang akan mengirim menu
     if 'discovery_message_id' in context.chat_data:
         try:
             await context.bot.delete_message(chat_id=chat_id, message_id=context.chat_data['discovery_message_id'])
@@ -153,7 +150,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 await send_main_menu(update, context, list(context.chat_data['active_devices']))
                 del context.chat_data['active_devices']
     else:
-        # Jika bot ini "kalah" (tidak memiliki discovery_message_id), ia tidak melakukan apa-apa.
         pass
 
 @check_access
@@ -208,7 +204,13 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         selected_device = command_parts[1]
         await send_device_menu(update, context, selected_device)
         return
-        
+    
+    elif action == "install_update":
+        # Jalankan skrip pembaruan di latar belakang
+        await context.bot.send_message(chat_id=query.message.chat_id, text="🔄 Memulai proses instalasi pembaruan. Bot akan memulai ulang setelah selesai.")
+        subprocess.Popen(['/bin/sh', '/www/assisten/bot/update.sh'])
+        return
+
     if action in LOADED_MODULES:
         command_name = action
         selected_device = command_parts[2]
