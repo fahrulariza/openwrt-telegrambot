@@ -12,11 +12,10 @@ SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 AKSES_FILE = os.path.join(SCRIPT_DIR, "akses.txt")
 AKSES_EDIT_FILE = os.path.join(SCRIPT_DIR, "akses.txt.tmp")
 
-async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE, **kwargs):
+async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE, command_data: str) -> None:
     """Fungsi utama untuk mengelola user yang diizinkan."""
     query = update.callback_query
     
-    command_data = kwargs.get('command_data', 'akses|menu|local')
     command_parts = command_data.split('|')
     action = command_parts[0] if len(command_parts) > 0 else 'akses'
     sub_action = command_parts[1] if len(command_parts) > 1 else 'menu'
@@ -44,6 +43,7 @@ async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE, **kwargs):
         user_id_to_del = command_parts[3]
         return await delete_user(update, context, user_id_to_del, selected_device)
     elif sub_action == 'back':
+        # Mengimpor modul bot secara lokal untuk menghindari kesalahan saat import di cmd
         from bot import send_device_menu
         try: await query.message.delete()
         except Exception: pass
