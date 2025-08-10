@@ -12,6 +12,12 @@ else
   echo "Proses bot.py tidak ditemukan. Melanjutkan..."
 fi
 
-echo "run_bot.sh akan memulai ulang bot secara otomatis."
+# Tambahkan jeda sebentar untuk memastikan proses benar-benar mati
+sleep 3
 
+# Mulai ulang bot dengan run_bot.sh
+echo "Memulai ulang bot..."
+/www/assisten/bot/run_bot.sh start
+
+echo "restart.sh selesai."
 exit 0
