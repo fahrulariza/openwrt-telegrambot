@@ -6,19 +6,25 @@ from telegram.ext import ContextTypes
 
 logger = logging.getLogger(__name__)
 
-async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE, **kwargs) -> None:
+async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE, command_data: str) -> None:
     """Mengambil dan menampilkan daftar DHCP leases dari file /tmp/dhcp.leases."""
     
     selected_device = 'local'
-    if 'command_data' in kwargs:
-        command_parts = kwargs['command_data'].split('|')
-        if len(command_parts) > 2:
-            selected_device = command_parts[2]
+    command_parts = command_data.split('|')
+    if len(command_parts) > 2:
+        selected_device = command_parts[2]
 
     leases_file = '/tmp/dhcp.leases'
 
+    # Tambahkan tombol kembali
+    keyboard = [[InlineKeyboardButton("Kembali ke menu pilih perintah", callback_data=f"back_to_device_menu|{selected_device}")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
     if not os.path.exists(leases_file):
-        await update.effective_message.reply_text("❌ File dhcp.leases tidak ditemukan. Mungkin tidak ada perangkat yang terhubung.")
+        await update.effective_message.reply_text(
+            "❌ File dhcp.leases tidak ditemukan. Mungkin tidak ada perangkat yang terhubung.",
+            reply_markup=reply_markup
+        )
         return
 
     try:
@@ -26,7 +32,10 @@ async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE, **kwargs) 
             lines = f.readlines()
 
         if not lines:
-            await update.effective_message.reply_text("Tidak ada DHCP leases aktif yang ditemukan.")
+            await update.effective_message.reply_text(
+                "Tidak ada DHCP leases aktif yang ditemukan.",
+                reply_markup=reply_markup
+            )
             return
 
         response_text = "✨ **Daftar Perangkat Terhubung (DHCP Leases)** ✨\n\n"
@@ -45,9 +54,10 @@ async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE, **kwargs) 
                     
                     if leasetime_remaining > 0:
                         lease_timedelta = datetime.timedelta(seconds=leasetime_remaining)
-                        hours, remainder = divmod(lease_timedelta.total_seconds(), 3600)
+                        days, remainder = divmod(lease_timedelta.total_seconds(), 86400)
+                        hours, remainder = divmod(remainder, 3600)
                         minutes, seconds = divmod(remainder, 60)
-                        lease_str = f"{int(hours)}j {int(minutes)}m {int(seconds)}d"
+                        lease_str = f"{int(days)}h {int(hours)}j {int(minutes)}m {int(seconds)}d"
                     else:
                         lease_str = "Kedaluwarsa"
 
@@ -61,9 +71,6 @@ async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE, **kwargs) 
                     logger.warning(f"Melewatkan baris tidak valid di dhcp.leases: {line.strip()}. Error: {e}")
                     continue
 
-        keyboard = [[InlineKeyboardButton("Kembali ke menu pilih perintah", callback_data=f"back_to_device_menu|{selected_device}")]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-
         await update.effective_message.reply_text(
             response_text,
             reply_markup=reply_markup,
@@ -72,4 +79,8 @@ async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE, **kwargs) 
 
     except Exception as e:
         logger.error(f"Terjadi kesalahan saat membaca file dhcp.leases: {e}")
-        await update.effective_message.reply_text(f"❌ Terjadi kesalahan tak terduga: `{e}`", parse_mode='Markdown')
+        await update.effective_message.reply_text(
+            f"❌ Terjadi kesalahan tak terduga: `{e}`", 
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
+        )
