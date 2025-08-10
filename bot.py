@@ -1,29 +1,24 @@
-import logging
 import os
 import importlib
-import asyncio
-import datetime
+import subprocess
+import logging
 import socket
-import sys
-import traceback
-import atexit
-import signal
-from functools import wraps
+import datetime
+import asyncio
+import random
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, Message
-from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
-from asyncio import CancelledError
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
+from functools import wraps
 
-# Atur logging ke tingkat INFO
+# --- Konfigurasi Logging ---
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
-# --- Konfigurasi Perangkat ---
+# --- Konfigurasi Perangkat & Token ---
 DEVICE_ID = socket.gethostname().strip()
-logger.info(f"DEVICE_ID lokal yang terdeteksi: '{DEVICE_ID}'")
-
-# --- Konfigurasi Lokasi File ---
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TOKEN_FILE = os.path.join(SCRIPT_DIR, "token.txt")
 AKSES_FILE = os.path.join(SCRIPT_DIR, "akses.txt")
@@ -31,33 +26,13 @@ CMD_FOLDER = os.path.join(SCRIPT_DIR, "cmd")
 PID_FILE = "/tmp/run_bot.pid"
 
 # --- Global State ---
-LAST_COMMAND_MESSAGE_ID = {}
 ALLOWED_USERS = set()
-# Inisialisasi daftar perangkat aktif
+LOADED_MODULES = {}
+LAST_COMMAND_MESSAGE_ID = {}
 ACTIVE_DEVICES = {DEVICE_ID}
 
-# --- Fungsi Pembantu & Keamanan ---
-def check_and_create_lock():
-    """Memeriksa dan membuat lock file untuk memastikan hanya satu instance yang berjalan."""
-    if os.path.exists(PID_FILE):
-        try:
-            with open(PID_FILE, "r") as f:
-                pid = int(f.read().strip())
-            # Cek apakah proses dengan PID ini masih berjalan
-            os.kill(pid, 0)
-            logger.error(f"Instance bot lain sudah berjalan dengan PID {pid}. Keluar.")
-            sys.exit(1)
-        except (ValueError, OSError):
-            # File lock 'stale', hapus
-            os.remove(PID_FILE)
-    
-    with open(PID_FILE, "w") as f:
-        f.write(str(os.getpid()))
-    
-    # Daftarkan fungsi untuk menghapus lock file saat keluar
-    atexit.register(lambda: os.remove(PID_FILE) if os.path.exists(PID_FILE) else None)
-
 def get_token(filename=TOKEN_FILE):
+    """Membaca token bot dari file."""
     try:
         with open(filename, "r") as f:
             return f.read().strip()
@@ -100,51 +75,73 @@ def check_access(func):
 def process_new_file(filepath):
     """Mengonversi file ke format Unix dan menambahkan izin eksekusi."""
     try:
-        os.system(f"dos2unix {filepath}")
+        subprocess.run(['dos2unix', filepath], check=True, capture_output=True)
         os.chmod(filepath, os.stat(filepath).st_mode | 0o111)
         logger.info(f"Berhasil memproses (dos2unix, chmod +x) file: {filepath}")
         return True
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Gagal memproses file {filepath}: {e.stderr.decode().strip()}")
     except Exception as e:
         logger.error(f"Gagal memproses file {filepath}: {e}")
-        return False
+    return False
+
+def load_commands(application: Application):
+    """Memuat semua skrip Python dari direktori 'cmd'."""
+    if not os.path.isdir(CMD_FOLDER):
+        logger.error(f"Direktori '{CMD_FOLDER}' tidak ditemukan.")
+        return
+    
+    for filename in os.listdir(CMD_FOLDER):
+        if filename.endswith('.py') and filename != '__init__.py':
+            module_name = filename[:-3]
+            filepath = os.path.join(CMD_FOLDER, filename)
+            
+            if process_new_file(filepath):
+                try:
+                    module = importlib.import_module(f'cmd.{module_name}')
+                    
+                    LOADED_MODULES[module_name] = module
+                    
+                    if hasattr(module, 'execute'):
+                        application.add_handler(CommandHandler(module_name, check_access(module.execute)))
+                        logger.info(f"Perintah dimuat: /{module_name}")
+                    else:
+                        logger.info(f"Modul '{module_name}' dimuat, tetapi tidak memiliki CommandHandler.")
+                except ImportError as e:
+                    logger.error(f"Gagal memuat modul '{module_name}': {e}")
+                except Exception as e:
+                    logger.error(f"Kesalahan tak terduga saat memuat modul '{module_name}': {e}")
 
 # --- Fungsi Menu & Handler ---
 @check_access
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Mencoba menghapus pesan bot sebelumnya lalu mengirim menu utama."""
+    """Menangani perintah /start dan menampilkan menu utama."""
     chat_id = update.effective_chat.id
-    
     try:
         await update.effective_message.delete()
-    except Exception as e:
-        logger.warning(f"Gagal menghapus pesan '/start': {e}")
+    except Exception:
+        pass
+    
+    # Tambahkan sedikit jeda acak untuk mencegah tabrakan
+    await asyncio.sleep(random.uniform(0.1, 0.5))
+    
+    # Kirim pesan awal untuk deteksi hanya jika belum ada yang memulai
+    if 'discovery_message_id' not in context.chat_data:
+        initial_message = await update.effective_message.reply_text("Mencari perangkat aktif...")
+        context.chat_data['discovery_message_id'] = initial_message.message_id
+        context.chat_data['active_devices'] = {DEVICE_ID}
 
-    start_message_id = update.effective_message.message_id
-    for message_id in range(start_message_id - 10, start_message_id):
-        try:
-            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
-        except Exception:
-            pass
+        # Kirim sinyal kehadiran bot lokal
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=f"ACTIVE|{DEVICE_ID}",
+            disable_notification=True,
+            disable_web_page_preview=True
+        )
     
-    # 1. Mengirim pesan awal untuk deteksi
-    initial_message = await update.effective_message.reply_text("Mencari perangkat aktif...")
-    
-    # Simpan message_id untuk diedit
-    context.chat_data['discovery_message_id'] = initial_message.message_id
-    context.chat_data['active_devices'] = {DEVICE_ID}
-
-    # Kirim sinyal kehadiran bot lokal
-    await context.bot.send_message(
-        chat_id=chat_id,
-        text=f"ACTIVE|{DEVICE_ID}",
-        disable_notification=True,
-        disable_web_page_preview=True
-    )
-    
-    # 2. Tunggu 3 detik untuk mengumpulkan respons
     await asyncio.sleep(3)
     
-    # 3. Hapus pesan sinyal kehadiran dan tampilkan menu final
+    # Hanya bot yang "menang" (memiliki discovery_message_id) yang akan mengirim menu
     if 'discovery_message_id' in context.chat_data:
         try:
             await context.bot.delete_message(chat_id=chat_id, message_id=context.chat_data['discovery_message_id'])
@@ -156,23 +153,18 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 await send_main_menu(update, context, list(context.chat_data['active_devices']))
                 del context.chat_data['active_devices']
     else:
-        await send_main_menu(update, context, list(ACTIVE_DEVICES))
-
+        # Jika bot ini "kalah" (tidak memiliki discovery_message_id), ia tidak melakukan apa-apa.
+        pass
 
 @check_access
 async def presence_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Menangani pesan 'ACTIVE' dari perangkat lain."""
     if 'discovery_message_id' in context.chat_data and update.effective_message.text and update.effective_message.text.startswith("ACTIVE|"):
         device_id = update.effective_message.text.split('|')[1]
-        
-        # Tambahkan perangkat baru ke daftar aktif
         if device_id not in context.chat_data['active_devices']:
             context.chat_data['active_devices'].add(device_id)
             logger.info(f"Perangkat baru terdeteksi: {device_id}")
-
-            # Edit pesan deteksi untuk menampilkan perangkat yang diperbarui
             devices_list_str = "\n".join(sorted(list(context.chat_data['active_devices'])))
-            
             try:
                 await context.bot.edit_message_text(
                     chat_id=update.effective_chat.id,
@@ -181,7 +173,6 @@ async def presence_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                 )
             except Exception:
                 pass
-        
         try:
             await update.effective_message.delete()
         except Exception:
@@ -189,85 +180,57 @@ async def presence_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 @check_access
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Menangani tombol yang ditekan."""
+    """Menangani semua tombol yang ditekan."""
     query = update.callback_query
     await query.answer()
-
-    now = datetime.datetime.now(datetime.timezone.utc)
-    message_time = query.message.date.astimezone(datetime.timezone.utc)
-    time_diff = now - message_time
-
-    if time_diff.total_seconds() > 180:
-        logger.warning("Mencegah eksekusi perintah karena terlalu lama.")
-        await query.message.reply_text("Perintah ini sudah kedaluwarsa (lebih dari 3 menit). Silakan ketik ulang /start.")
-        return
-
+    
     command_data = query.data.strip()
     command_parts = command_data.split('|')
     action = command_parts[0]
     
-    if action == "back_to_main_menu":
-        try: 
-            await query.message.delete()
-        except Exception: 
-            pass
-        await send_main_menu(update, context, list(ACTIVE_DEVICES))
-        return
-    
-    if action == "back_to_device_menu":
+    if action in ["back_to_main_menu", "back_to_device_menu"]:
         try:
             await query.message.delete()
-        except Exception: 
+        except Exception:
             pass
-        selected_device = command_parts[1]
-        await send_device_menu(update, context, selected_device)
+        if action == "back_to_main_menu":
+            await send_main_menu(update, context, list(ACTIVE_DEVICES))
+        elif action == "back_to_device_menu":
+            selected_device = command_parts[1]
+            await send_device_menu(update, context, selected_device)
         return
-
+    
     if action == "select":
         try:
             await query.message.delete()
-        except Exception: 
+        except Exception:
             pass
         selected_device = command_parts[1]
         await send_device_menu(update, context, selected_device)
         return
-    
-    if action in [f.split('.')[0] for f in os.listdir(CMD_FOLDER)]:
+        
+    if action in LOADED_MODULES:
         command_name = action
         selected_device = command_parts[2]
-
+        
         if selected_device == DEVICE_ID:
-            logger.info(f"Perintah '{command_name}' cocok dengan DEVICE_ID lokal. Menjalankan skrip...")
+            try:
+                await query.message.delete()
+            except Exception:
+                pass
             
             try:
-                chat_id = update.effective_chat.id
-                
-                if chat_id in LAST_COMMAND_MESSAGE_ID:
-                    try:
-                        await context.bot.delete_message(chat_id=chat_id, message_id=LAST_COMMAND_MESSAGE_ID[chat_id])
-                    except Exception as e:
-                        logger.warning(f"Gagal menghapus pesan lama: {e}")
-                
-                module = importlib.import_module(f"cmd.{command_name}")
-                message = await module.execute(update, context, command_data=command_data)
-                
-                if message:
-                    LAST_COMMAND_MESSAGE_ID[chat_id] = message.message_id
-                
-                logger.info(f"Perintah /{command_name} berhasil dijalankan.")
+                await LOADED_MODULES[command_name].execute(update, context, command_data)
+                logger.info(f"Perintah /{command_name} berhasil dijalankan pada '{DEVICE_ID}'.")
             except Exception as e:
-                logger.error(f"Gagal menjalankan perintah /{command_name} pada {DEVICE_ID}: {e}")
-                error_message = await context.bot.send_message(
+                logger.error(f"Gagal menjalankan perintah /{command_name}: {e}")
+                await context.bot.send_message(
                     chat_id=update.effective_chat.id,
-                    text=f"❌ Gagal menjalankan perintah `/{command_name}` pada `{DEVICE_ID}`. Terjadi kesalahan: `{e}`",
-                    parse_mode='Markdown'
+                    text=f"❌ Terjadi kesalahan saat menjalankan perintah {command_name}."
                 )
-                if error_message: 
-                    LAST_COMMAND_MESSAGE_ID[chat_id] = error_message.message_id
-                
-                await send_device_menu(update, context, selected_device)
-        else:
-            logger.info(f"Tombol ditekan, tetapi tidak cocok dengan DEVICE_ID lokal ('{selected_device}' != '{DEVICE_ID}'). Mengabaikan.")
+            return
+
+    logger.warning(f"Tombol ditekan, tetapi tidak cocok dengan DEVICE_ID lokal ('{command_parts[2]}' != '{DEVICE_ID}'). Mengabaikan.")
 
 async def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, devices_list) -> Message:
     """Mengirim menu utama pilihan perangkat dan mengembalikan objek pesan."""
@@ -289,16 +252,9 @@ async def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, dev
 
 async def send_device_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, selected_device: str) -> None:
     """Mengirim menu perintah untuk perangkat tertentu secara dinamis."""
-    commands_list = []
-    for filename in os.listdir(CMD_FOLDER):
-        if filename.endswith('.py') and filename != '__init__.py':
-            command_name = filename.replace('.py', '')
-            commands_list.append(command_name)
-    
-    commands_list.sort()
+    commands_list = sorted(list(LOADED_MODULES.keys()))
     
     keyboard = []
-    
     for cmd in commands_list:
         keyboard.append([InlineKeyboardButton(cmd.capitalize(), callback_data=f"{cmd}|menu|{selected_device}")])
         
@@ -312,56 +268,27 @@ async def send_device_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, s
         parse_mode='Markdown'
     )
     logger.info(f"Menu perintah untuk '{selected_device}' berhasil dikirim.")
-    chat_id = update.effective_chat.id
-    LAST_COMMAND_MESSAGE_ID[chat_id] = message.message_id
 
 def main() -> None:
-    try:
-        check_and_create_lock()
-        token = get_token()
-        if not token:
-            logger.error("Token tidak ditemukan. Keluar.")
-            sys.exit(1)
-        
-        load_allowed_users()
+    """Fungsi utama untuk menjalankan bot."""
+    token = get_token()
+    if not token:
+        logger.error("Token tidak ditemukan. Keluar.")
+        return
 
-        application = Application.builder().token(token).build()
-        
-        application.add_handler(CommandHandler("start", start))
-        application.add_handler(CallbackQueryHandler(button_handler))
-        
-        # Tambahkan handler untuk mendeteksi pesan 'ACTIVE'
-        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.Regex(r'^ACTIVE\|.*'), check_access(presence_handler)))
+    logger.info(f"DEVICE_ID lokal yang terdeteksi: '{DEVICE_ID}'")
+    load_allowed_users()
 
-        from cmd.akses import handle_user_input
-        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, check_access(handle_user_input)))
+    application = Application.builder().token(token).build()
+    
+    load_commands(application)
+    
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CallbackQueryHandler(button_handler))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.Regex(r'^ACTIVE\|.*'), presence_handler))
 
-        if not os.path.exists(CMD_FOLDER):
-            os.makedirs(CMD_FOLDER)
-        
-        for filename in os.listdir(CMD_FOLDER):
-            if filename.endswith('.py') and filename != '__init__.py':
-                filepath = os.path.join(CMD_FOLDER, filename)
-                process_new_file(filepath)
-                
-                command_name = filename.replace('.py', '')
-                try:
-                    module = importlib.import_module(f"cmd.{command_name}")
-                    application.add_handler(CommandHandler(command_name, check_access(module.execute)))
-                    logger.info(f"Perintah dimuat: /{command_name}")
-                except Exception as e:
-                    logger.error(f"Gagal memuat perintah /{command_name}: {e}")
-        
-        application.run_polling(allowed_updates=Update.ALL_TYPES, close_loop=False)
+    logger.info("Application started. Bot sedang aktif.")
+    application.run_polling(allowed_updates=Update.ALL_TYPES)
 
-    except CancelledError:
-        logger.info("Polling dibatalkan, bot akan berhenti.")
-    except Exception as e:
-        logger.error(f"Terjadi kesalahan fatal: {e}")
-        logger.error(traceback.format_exc())
-    finally:
-        if os.path.exists(PID_FILE):
-            os.remove(PID_FILE)
-        
 if __name__ == '__main__':
     main()
