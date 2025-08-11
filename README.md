@@ -33,16 +33,16 @@
         └── .git/
 ```
 Penjelasan Struktur File
->- **/www/assisten/bot**: Ini adalah direktori utama tempat semua kode bot berada.
->- folder **bot/**:
-1. **cmd/: Folder ini berisi semua modul perintah yang dapat dijalankan bot. Setiap file .py di sini (akses.py, status.py, dll.) adalah perintah terpisah yang akan dimuat secara dinamis oleh bot.py. File __init__.py kosong diperlukan agar Python mengenali cmd sebagai sebuah paket.
-2. **bot.py**: Skrip utama bot yang menjalankan semua logika, menangani koneksi Telegram, memuat perintah, dan mengelola interaksi.
-3. **README.md**: Berisi panduan instalasi dan deskripsi proyek.
-4. **restart.sh**: Skrip shell untuk menghentikan dan memulai ulang bot.
-5. **run_bot.sh**: Skrip utama untuk mengelola siklus hidup bot (mulai, berhenti, restart).
-6. **akses.txt**: File teks berisi daftar User ID Telegram yang diizinkan untuk menggunakan bot.
-7. **token.txt**: File teks berisi token API bot Anda dari BotFather.
-8. **.git/**: Direktori ini dibuat oleh Git untuk mengelola riwayat versi proyek.
+> - **/www/assisten/bot**: Ini adalah direktori utama tempat semua kode bot berada.
+> - folder **bot/**:
+> 1. **cmd/: Folder ini berisi semua modul perintah yang dapat dijalankan bot. Setiap file .py di sini (akses.py, status.py, dll.) adalah perintah terpisah yang akan dimuat secara dinamis oleh bot.py. File __init__.py kosong diperlukan agar Python mengenali cmd sebagai sebuah paket.
+> 2. **bot.py**: Skrip utama bot yang menjalankan semua logika, menangani koneksi Telegram, memuat perintah, dan mengelola interaksi.
+> 3. **README.md**: Berisi panduan instalasi dan deskripsi proyek.
+> 4. **restart.sh**: Skrip shell untuk menghentikan dan memulai ulang bot.
+> 5. **run_bot.sh**: Skrip utama untuk mengelola siklus hidup bot (mulai, berhenti, restart).
+> 6. **akses.txt**: File teks berisi daftar User ID Telegram yang diizinkan untuk menggunakan bot.
+> 7. **token.txt**: File teks berisi token API bot Anda dari BotFather.
+> 8. **.git/**: Direktori ini dibuat oleh Git untuk mengelola riwayat versi proyek.
 Struktur ini rapi, modular, dan memudahkan Anda untuk menambah, menghapus, atau mengelola perintah baru tanpa mengubah skrip utama bot.py.
 
 ## 🛠️ Persiapan
