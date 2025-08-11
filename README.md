@@ -32,6 +32,14 @@ opkg install python3 python3-pip dos2unix wget git-http
 > 4. **wget:** Untuk mengunduh file dari internet.
 > 5. **git-http:** Digunakan untuk proses instalasi yang lebih mudah.
 
+#### Pasang library python yang diperlukan
+```
+pip install psutil
+```
+```
+pip3 install python-telegram-bot
+```
+
 ### ⚙️ Panduan Instalasi
 Ikuti langkah-langkah di bawah ini untuk menginstal bot di router OpenWrt Anda.
 <p>
