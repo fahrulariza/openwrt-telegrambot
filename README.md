@@ -5,14 +5,14 @@
 </div>
 
 🚀 Fitur Utama
-  Kontrol Penuh: Jalankan perintah shell, pantau status sistem, dan kelola layanan langsung dari Telegram.
+<p>  Kontrol Penuh: Jalankan perintah shell, pantau status sistem, dan kelola layanan langsung dari Telegram.
 
   Antarmuka Interaktif: Menggunakan Inline Keyboard untuk navigasi yang mudah tanpa mengetik perintah manual.
 
   Notifikasi Instan: Terima notifikasi real-time tentang status router Anda.
 
   Keamanan Terjamin: Akses hanya diberikan kepada User ID yang telah disetujui.
-
+</p>
 🛠️ Persiapan
 Tool yang Dibutuhkan
 Sebelum memulai, pastikan Anda telah menginstal tool berikut di OpenWrt Anda:
