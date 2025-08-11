@@ -14,7 +14,7 @@
 Tool yang Dibutuhkan
 Sebelum memulai, pastikan Anda telah menginstal tool berikut di OpenWrt Anda:
 
-Bash
+melalui terminal di openwrt ikuti langkah dibawah ini
 
 #### Perbarui daftar paket
 - `opkg update`
