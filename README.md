@@ -10,6 +10,52 @@
 - **Notifikasi Instan**: Terima notifikasi real-time tentang status router Anda.
 - **Keamanan Terjamin**: Akses hanya diberikan kepada User ID yang telah disetujui.
 
+### ⚙️ Struktur file Instalasi
+```
+/www/assisten/
+        ├── bot/
+        │   ├── cmd/
+        │   │   ├── __init__.py
+        │   │   ├── akses.py
+        │   │   ├── dhcp_leases.py
+        │   │   ├── interface.py
+        │   │   ├── openclash.py
+        │   │   ├── reboot.py
+        │   │   ├── reload_bot.py
+        │   │   ├── status.py
+        │   │   └── update.py
+        │   ├── bot.py
+        │   ├── README.md
+        │   ├── requirements.txt
+        │   ├── restart.sh
+        │   ├── run_bot.sh
+        │   ├── akses.txt
+        │   └── token.txt
+        └── .git/
+```
+Penjelasan Struktur File
+- **/www/assisten/: Ini adalah direktori utama tempat semua kode bot berada.
+- **bot/:
+        cmd/: Folder ini berisi semua modul perintah yang dapat dijalankan bot. Setiap file .py di sini (akses.py, status.py, dll.) adalah perintah terpisah yang akan dimuat secara dinamis oleh bot.py. File __init__.py kosong diperlukan agar Python mengenali cmd sebagai sebuah paket.
+
+bot.py: Skrip utama bot yang menjalankan semua logika, menangani koneksi Telegram, memuat perintah, dan mengelola interaksi.
+
+README.md: Berisi panduan instalasi dan deskripsi proyek.
+
+requirements.txt: Daftar pustaka Python yang diperlukan untuk menjalankan bot.
+
+restart.sh: Skrip shell untuk menghentikan dan memulai ulang bot.
+
+run_bot.sh: Skrip utama untuk mengelola siklus hidup bot (mulai, berhenti, restart).
+
+akses.txt: File teks berisi daftar User ID Telegram yang diizinkan untuk menggunakan bot.
+
+token.txt: File teks berisi token API bot Anda dari BotFather.
+
+.git/: Direktori ini dibuat oleh Git untuk mengelola riwayat versi proyek.
+
+Struktur ini rapi, modular, dan memudahkan Anda untuk menambah, menghapus, atau mengelola perintah baru tanpa mengubah skrip utama bot.py.
+
 ## 🛠️ Persiapan
 Tool yang Dibutuhkan
 Sebelum memulai, pastikan Anda telah menginstal tool berikut di OpenWrt Anda:
@@ -41,29 +87,6 @@ pip3 install python-telegram-bot
 ```
 ```
 pip3 install paramiko
-```
-### ⚙️ Struktur file Instalasi
-```
-/www/assisten/
-        ├── bot/
-        │   ├── cmd/
-        │   │   ├── __init__.py
-        │   │   ├── akses.py
-        │   │   ├── dhcp_leases.py
-        │   │   ├── interface.py
-        │   │   ├── openclash.py
-        │   │   ├── reboot.py
-        │   │   ├── reload_bot.py
-        │   │   ├── status.py
-        │   │   └── update.py
-        │   ├── bot.py
-        │   ├── README.md
-        │   ├── requirements.txt
-        │   ├── restart.sh
-        │   ├── run_bot.sh
-        │   ├── akses.txt
-        │   └── token.txt
-        └── .git/
 ```
 
 ### ⚙️ Panduan Instalasi
