@@ -6,10 +6,10 @@
 
 ### 🚀 Fitur Utama
 <p> 
-  1. Kontrol Penuh: Jalankan perintah shell, pantau status sistem, dan kelola layanan langsung dari Telegram.
-  2. Antarmuka Interaktif: Menggunakan Inline Keyboard untuk navigasi yang mudah tanpa mengetik perintah manual.
-  3. Notifikasi Instan: Terima notifikasi real-time tentang status router Anda.
-  4. Keamanan Terjamin: Akses hanya diberikan kepada User ID yang telah disetujui.
+ 1. Kontrol Penuh: Jalankan perintah shell, pantau status sistem, dan kelola layanan langsung dari Telegram.
+ 2. Antarmuka Interaktif: Menggunakan Inline Keyboard untuk navigasi yang mudah tanpa mengetik perintah manual.
+ 3. Notifikasi Instan: Terima notifikasi real-time tentang status router Anda.
+ 4. Keamanan Terjamin: Akses hanya diberikan kepada User ID yang telah disetujui.
 </p>
 🛠️ Persiapan
 Tool yang Dibutuhkan
