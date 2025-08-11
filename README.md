@@ -17,8 +17,9 @@ Sebelum memulai, pastikan Anda telah menginstal tool berikut di OpenWrt Anda:
 melalui terminal di openwrt ikuti langkah dibawah ini
 
 #### Perbarui daftar paket
-- `opkg update`
-
+```
+opkg update
+```
 #### Pasang paket yang diperlukan
 - `opkg install python3 python3-pip dos2unix wget git-http`
 
