@@ -21,6 +21,7 @@ Bash
 
 ## Pasang paket yang diperlukan
 - `opkg install python3 python3-pip dos2unix wget git-http`
+
 Keterangan Tool
 python3: Bahasa pemrograman utama untuk menjalankan bot.
 
