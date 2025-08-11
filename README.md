@@ -49,7 +49,7 @@ Struktur ini rapi, modular, dan memudahkan Anda untuk menambah, menghapus, atau 
 
 ## 🛠️ Persiapan
 Tool yang Dibutuhkan
-Sebelum memulai, pastikan Anda telah menginstal tool berikut di OpenWrt Anda:
+Sebelum memulai, pastikan telah menginstal tool berikut di OpenWrt :
 
 melalui terminal di openwrt ikuti langkah dibawah ini
 
@@ -81,10 +81,10 @@ pip3 install paramiko
 ```
 
 ### ⚙️ Panduan Instalasi
-Ikuti langkah-langkah di bawah ini untuk menginstal bot di router OpenWrt Anda.
+Ikuti langkah-langkah di bawah ini untuk menginstal bot di router OpenWrt.
 <p>
 Langkah 1: Kloning Repositori
-Masuk ke router OpenWrt Anda melalui SSH, lalu jalankan perintah ini untuk mengunduh kode bot dan menyimpannya ke folder assisten di /www/assisten/bot:
+Masuk ke router OpenWrt melalui `SSH` atau `Terminal LuCi`, lalu jalankan perintah ini untuk mengunduh kode bot dan menyimpannya ke folder assisten di `/www/assisten/bot`:
 
 ```
 mkdir /www/assisten
