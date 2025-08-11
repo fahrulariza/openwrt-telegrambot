@@ -4,7 +4,7 @@
 <p>Kelola router OpenWrt Anda dengan mudah melalui bot Telegram!</p>
 </div>
 
-🚀 Fitur Utama
+### 🚀 Fitur Utama
 <p> 
   Kontrol Penuh: Jalankan perintah shell, pantau status sistem, dan kelola layanan langsung dari Telegram.
 
@@ -36,7 +36,7 @@ wget: Untuk mengunduh file dari internet.
 
 git-http: Digunakan untuk proses instalasi yang lebih mudah.
 
-⚙️ Panduan Instalasi
+### ⚙️ Panduan Instalasi
 Ikuti langkah-langkah di bawah ini untuk menginstal bot di router OpenWrt Anda.
 <p>
 Langkah 1: Kloning Repositori
