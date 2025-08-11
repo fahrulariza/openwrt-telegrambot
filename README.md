@@ -45,25 +45,25 @@ pip3 install paramiko
 ### ⚙️ Struktur file Instalasi
 ```
 /www/assisten/
-├── bot/
-│   ├── cmd/
-│   │   ├── __init__.py
-│   │   ├── akses.py
-│   │   ├── dhcp_leases.py
-│   │   ├── interface.py
-│   │   ├── openclash.py
-│   │   ├── reboot.py
-│   │   ├── reload_bot.py
-│   │   ├── status.py
-│   │   └── update.py
-│   ├── bot.py
-│   ├── README.md
-│   ├── requirements.txt
-│   ├── restart.sh
-│   ├── run_bot.sh
-│   ├── akses.txt
-│   └── token.txt
-└── .git/
+        ├── bot/
+        │   ├── cmd/
+        │   │   ├── __init__.py
+        │   │   ├── akses.py
+        │   │   ├── dhcp_leases.py
+        │   │   ├── interface.py
+        │   │   ├── openclash.py
+        │   │   ├── reboot.py
+        │   │   ├── reload_bot.py
+        │   │   ├── status.py
+        │   │   └── update.py
+        │   ├── bot.py
+        │   ├── README.md
+        │   ├── requirements.txt
+        │   ├── restart.sh
+        │   ├── run_bot.sh
+        │   ├── akses.txt
+        │   └── token.txt
+        └── .git/
 ```
 
 ### ⚙️ Panduan Instalasi
