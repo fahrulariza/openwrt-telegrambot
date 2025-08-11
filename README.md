@@ -98,7 +98,7 @@ Gunakan skrip run_bot.sh untuk memulai bot. Bot akan berjalan di latar belakang.
 ```
 
 Cara Alternatif (Init Script)
-Metode yang lebih rapi dan direkomendasikan di OpenWrt adalah membuat 'init.d' script khusus untuk bot Anda. Ini memberikan kontrol yang lebih baik (misalnya, 'enable', 'disable', 'restart').
+Metode yang lebih rapi dan direkomendasikan di OpenWrt adalah membuat `init.d` script khusus untuk bot Anda. Ini memberikan kontrol yang lebih baik (misalnya, `enable`, `disable`, `restart`).
 Metode ini lebih disarankan karena lebih terintegrasi dengan sistem startup OpenWrt.
 Berikut adalah contoh skrip init.d untuk bot Anda:
 File: /etc/init.d/telegram-bot
