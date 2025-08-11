@@ -82,7 +82,6 @@ pip3 install paramiko
 
 ### ⚙️ Panduan Instalasi
 Ikuti langkah-langkah di bawah ini untuk menginstal bot di router OpenWrt.
-<p>
 Langkah 1: Kloning Repositori
 Masuk ke router OpenWrt melalui `SSH` atau `Terminal LuCi`, lalu jalankan perintah ini untuk mengunduh kode bot dan menyimpannya ke folder assisten di `/www/assisten/bot`:
 
@@ -160,7 +159,6 @@ Setelah membuat file ini, kamu bisa mengaktifkan autostart dengan perintah:
 chmod +x /etc/init.d/telegram-bot
 /etc/init.d/telegram-bot enable
 ```
-</p>
 <div align="center">
 <p>Selesai! Sekarang bot Anda siap digunakan. Buka Telegram dan kirim perintah <code>/start</code> ke bot Anda.</p>
 </div>
