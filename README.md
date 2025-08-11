@@ -49,10 +49,10 @@ Ikuti langkah-langkah di bawah ini untuk menginstal bot di router OpenWrt Anda.
 Langkah 1: Kloning Repositori
 Masuk ke router OpenWrt Anda melalui SSH, lalu jalankan perintah ini untuk mengunduh kode bot:
 
-Bash
-
+```
 cd /www/
 git clone https://github.com/fahrulariza/openwrt-telegrambot.git assisten
+```
 Langkah 2: Konfigurasi Token Bot & Akses Pengguna
 Buat bot Telegram baru melalui @BotFather dan dapatkan token API-nya.
 
