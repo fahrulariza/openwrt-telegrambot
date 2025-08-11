@@ -9,6 +9,7 @@
 - **Antarmuka Interaktif**: Menggunakan Inline Keyboard untuk navigasi yang mudah tanpa mengetik perintah manual.
 - **Notifikasi Instan**: Terima notifikasi real-time tentang status router Anda.
 - **Keamanan Terjamin**: Akses hanya diberikan kepada User ID yang telah disetujui.
+- **Module**: menambahkan dan menghapus module tanpa mengubah script utama hanya di folder `cmd`
 
 ### ⚙️ Struktur file Instalasi
 ```
@@ -44,7 +45,7 @@
 > 7. **token.txt**: File teks berisi token API bot Anda dari BotFather.
 > 8. **.git/**: Direktori ini dibuat oleh Git untuk mengelola riwayat versi proyek.
 
-Struktur ini rapi, modular, dan memudahkan Anda untuk menambah, menghapus, atau mengelola perintah baru tanpa mengubah skrip utama bot.py.
+Struktur ini rapi, modular, dan memudahkan Anda untuk menambah, menghapus, atau mengelola perintah baru tanpa mengubah skrip utama `bot.py` hanya uploda module ke folder `cmd`.
 
 ## 🛠️ Persiapan
 Tool yang Dibutuhkan
