@@ -23,15 +23,11 @@ Bash
 - `opkg install python3 python3-pip dos2unix wget git-http`
 
 Keterangan Tool
-python3: Bahasa pemrograman utama untuk menjalankan bot.
-
-python3-pip: Manajer paket untuk menginstal pustaka Python yang dibutuhkan.
-
-dos2unix: Untuk mengonversi format file skrip.
-
-wget: Untuk mengunduh file dari internet.
-
-git-http: Digunakan untuk proses instalasi yang lebih mudah.
+1. python3: Bahasa pemrograman utama untuk menjalankan bot.
+2. python3-pip: Manajer paket untuk menginstal pustaka Python yang dibutuhkan.
+3. dos2unix: Untuk mengonversi format file skrip.
+4. wget: Untuk mengunduh file dari internet.
+5. git-http: Digunakan untuk proses instalasi yang lebih mudah.
 
 ### ⚙️ Panduan Instalasi
 Ikuti langkah-langkah di bawah ini untuk menginstal bot di router OpenWrt Anda.
