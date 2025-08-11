@@ -21,7 +21,9 @@ melalui terminal di openwrt ikuti langkah dibawah ini
 opkg update
 ```
 #### Pasang paket yang diperlukan
-```opkg install python3 python3-pip dos2unix wget git-http```
+```
+opkg install python3 python3-pip dos2unix wget git-http
+```
 
 Keterangan Tool
 1. **python3:** Bahasa pemrograman utama untuk menjalankan bot.
