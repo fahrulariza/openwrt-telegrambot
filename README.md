@@ -35,7 +35,7 @@
 Penjelasan Struktur File
 > - **/www/assisten/bot**: Ini adalah direktori utama tempat semua kode bot berada.
 > - folder **bot/**:
-> 1. **cmd/: Folder ini berisi semua modul perintah yang dapat dijalankan bot. Setiap file .py di sini (akses.py, status.py, dll.) adalah perintah terpisah yang akan dimuat secara dinamis oleh bot.py. File __init__.py kosong diperlukan agar Python mengenali cmd sebagai sebuah paket.
+> 1. **cmd/**: Folder ini berisi semua modul perintah yang dapat dijalankan bot. Setiap file .py di sini (akses.py, status.py, dll.) adalah perintah terpisah yang akan dimuat secara dinamis oleh bot.py. File __init__.py kosong diperlukan agar Python mengenali cmd sebagai sebuah paket.
 > 2. **bot.py**: Skrip utama bot yang menjalankan semua logika, menangani koneksi Telegram, memuat perintah, dan mengelola interaksi.
 > 3. **README.md**: Berisi panduan instalasi dan deskripsi proyek.
 > 4. **restart.sh**: Skrip shell untuk menghentikan dan memulai ulang bot.
