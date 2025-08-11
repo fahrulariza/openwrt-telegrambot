@@ -19,7 +19,7 @@ Bash
 #### Perbarui daftar paket
 - `opkg update`
 
-## Pasang paket yang diperlukan
+#### Pasang paket yang diperlukan
 - `opkg install python3 python3-pip dos2unix wget git-http`
 
 Keterangan Tool
