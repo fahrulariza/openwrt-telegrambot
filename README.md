@@ -10,16 +10,16 @@
 - **Notifikasi Instan**: Terima notifikasi real-time tentang status router Anda.
 - **Keamanan Terjamin**: Akses hanya diberikan kepada User ID yang telah disetujui.
 
-🛠️ Persiapan
+## 🛠️ Persiapan
 Tool yang Dibutuhkan
 Sebelum memulai, pastikan Anda telah menginstal tool berikut di OpenWrt Anda:
 
 Bash
 
-# Perbarui daftar paket
+#### Perbarui daftar paket
 opkg update
 
-# Pasang paket yang diperlukan
+## Pasang paket yang diperlukan
 opkg install python3 python3-pip dos2unix wget git-http
 Keterangan Tool
 python3: Bahasa pemrograman utama untuk menjalankan bot.
