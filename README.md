@@ -5,7 +5,8 @@
 </div>
 
 🚀 Fitur Utama
-<p>  Kontrol Penuh: Jalankan perintah shell, pantau status sistem, dan kelola layanan langsung dari Telegram.
+<p> 
+  Kontrol Penuh: Jalankan perintah shell, pantau status sistem, dan kelola layanan langsung dari Telegram.
 
   Antarmuka Interaktif: Menggunakan Inline Keyboard untuk navigasi yang mudah tanpa mengetik perintah manual.
 
