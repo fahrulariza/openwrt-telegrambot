@@ -38,7 +38,7 @@ git-http: Digunakan untuk proses instalasi yang lebih mudah.
 
 ⚙️ Panduan Instalasi
 Ikuti langkah-langkah di bawah ini untuk menginstal bot di router OpenWrt Anda.
-
+<p>
 Langkah 1: Kloning Repositori
 Masuk ke router OpenWrt Anda melalui SSH, lalu jalankan perintah ini untuk mengunduh kode bot:
 
@@ -83,6 +83,7 @@ Gunakan skrip run_bot.sh untuk memulai bot. Bot akan berjalan di latar belakang.
 Bash
 
 /www/assisten/bot/run_bot.sh start
+</p>
 <div align="center">
 <p>Selesai! Sekarang bot Anda siap digunakan. Buka Telegram dan kirim perintah <code>/start</code> ke bot Anda.</p>
 </div>
