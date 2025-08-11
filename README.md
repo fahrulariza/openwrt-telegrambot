@@ -85,6 +85,12 @@ chmod +x /www/assisten/bot/update.sh
 chmod +x /www/assisten/bot/bot.py
 dos2unix /www/assisten/bot/*.sh
 ```
+Untuk memastikan semua file di folder cmd/ memiliki format dan izin yang benar, jalankan lagi perintah ini
+```
+cd /www/assisten/bot/cmd
+dos2unix *.py
+chmod +x *.py
+```
 Langkah 5: Jalankan Bot
 Gunakan skrip run_bot.sh untuk memulai bot. Bot akan berjalan di latar belakang.
 ```
