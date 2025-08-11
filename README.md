@@ -1,86 +1,72 @@
-<div align="center">
-<img src="https://raw.githubusercontent.com/fahrulariza/openwrt-telegrambot/master/assets/logo.png" alt="OpenWrt Telegram Bot Logo" width="200"/>
-<h1>Asisten Bot Telegram untuk OpenWrt</h1>
-<p>Kelola router OpenWrt Anda dengan mudah melalui bot Telegram!</p>
+🌟 Asisten Bot Telegram untuk OpenWrt
+<div align="center"> <img src="https://raw.githubusercontent.com/fahrulariza/openwrt-telegrambot/master/assets/logo.png" alt="Logo Bot Telegram OpenWrt" width="200"/> <h1>Asisten Bot Telegram OpenWrt</h1> <p>Cara pintar mengelola router OpenWrt melalui Telegram!</p>
+https://img.shields.io/github/license/fahrulariza/openwrt-telegrambot
+https://img.shields.io/badge/python-3.7%252B-blue
+https://img.shields.io/badge/Telegram%2520Bot%2520API-v20.5%252B-brightgreen
+
 </div>
+✨ Fitur Unggulan
+Fitur	Keterangan
+🔧 Kontrol Penuh	Jalankan perintah shell, pantau status sistem, dan kelola layanan langsung dari Telegram
+🎨 Antarmuka Interaktif	Tombol keyboard inline untuk navigasi mudah tanpa mengetik perintah manual
+🔔 Notifikasi Real-time	Dapatkan pemberitahuan instan tentang status router Anda
+🔒 Akses Aman	Sistem whitelist memastikan hanya pengguna terdaftar yang bisa mengontrol
+📊 Pemantauan Sistem	Cek penggunaan CPU, memori, uptime, dan statistik jaringan dengan perintah sederhana
+� Panduan Instalasi Cepat
+📋 Persyaratan
+Pastikan router OpenWrt Anda telah terinstal paket-paket berikut:
 
-### 🚀 Fitur Utama
-<p> 
- 1. Kontrol Penuh: Jalankan perintah shell, pantau status sistem, dan kelola layanan langsung dari Telegram.
- 2. Antarmuka Interaktif: Menggunakan Inline Keyboard untuk navigasi yang mudah tanpa mengetik perintah manual.
- 3. Notifikasi Instan: Terima notifikasi real-time tentang status router Anda.
- 4. Keamanan Terjamin: Akses hanya diberikan kepada User ID yang telah disetujui.
-</p>
-🛠️ Persiapan
-Tool yang Dibutuhkan
-Sebelum memulai, pastikan Anda telah menginstal tool berikut di OpenWrt Anda:
-
-Bash
-
-# Perbarui daftar paket
+bash
 opkg update
-
-# Pasang paket yang diperlukan
 opkg install python3 python3-pip dos2unix wget git-http
-Keterangan Tool
-python3: Bahasa pemrograman utama untuk menjalankan bot.
+⚡ Langkah Instalasi
+Clone Repository
 
-python3-pip: Manajer paket untuk menginstal pustaka Python yang dibutuhkan.
-
-dos2unix: Untuk mengonversi format file skrip.
-
-wget: Untuk mengunduh file dari internet.
-
-git-http: Digunakan untuk proses instalasi yang lebih mudah.
-
-### ⚙️ Panduan Instalasi
-Ikuti langkah-langkah di bawah ini untuk menginstal bot di router OpenWrt Anda.
-<p>
-Langkah 1: Kloning Repositori
-Masuk ke router OpenWrt Anda melalui SSH, lalu jalankan perintah ini untuk mengunduh kode bot:
-
-Bash
-
+bash
 cd /www/
 git clone https://github.com/fahrulariza/openwrt-telegrambot.git assisten
-Langkah 2: Konfigurasi Token Bot & Akses Pengguna
-Buat bot Telegram baru melalui @BotFather dan dapatkan token API-nya.
+Konfigurasi Bot & Akses
 
-Buat file token.txt di folder assisten/bot/ dan masukkan token Anda di dalamnya.
-
-Bash
-
+bash
+# Set Token Bot Telegram Anda
 echo "TOKEN_BOT_ANDA" > /www/assisten/bot/token.txt
-Dapatkan ID pengguna Telegram Anda dari @userinfobot.
 
-Buat file akses.txt di folder yang sama dan masukkan ID pengguna Anda.
+# Tambahkan ID User Telegram (dapatkan dari @userinfobot)
+echo "ID_USER_ANDA" > /www/assisten/bot/akses.txt
+Instalasi Dependensi Python
 
-Bash
-
-echo "ID_PENGGUNA_ANDA" > /www/assisten/bot/akses.txt
-Langkah 3: Instal Pustaka Python
-Masuk ke direktori bot dan instal semua pustaka yang diperlukan.
-
-Bash
-
+bash
 cd /www/assisten/bot
 pip install -r requirements.txt
-Langkah 4: Jalankan Skrip Persiapan
-Skrip ini akan memastikan semua file memiliki izin eksekusi yang benar.
+Atur Izin File
 
-Bash
-
-chmod +x /www/assisten/bot/run_bot.sh
-chmod +x /www/assisten/bot/update.sh
+bash
+chmod +x /www/assisten/bot/*.sh
 chmod +x /www/assisten/bot/bot.py
 dos2unix /www/assisten/bot/*.sh
-Langkah 5: Jalankan Bot
-Gunakan skrip run_bot.sh untuk memulai bot. Bot akan berjalan di latar belakang.
+Mulai Bot
 
-Bash
-
+bash
 /www/assisten/bot/run_bot.sh start
-</p>
-<div align="center">
-<p>Selesai! Sekarang bot Anda siap digunakan. Buka Telegram dan kirim perintah <code>/start</code> ke bot Anda.</p>
-</div>
+🎮 Perintah Dasar
+Perintah	Fungsi
+/start	Memulai bot dan menampilkan menu utama
+/status	Menampilkan ringkasan status sistem
+/reboot	Me-restart router
+/services	Kelola layanan yang sedang berjalan
+/speedtest	Tes kecepatan internet
+/help	Menampilkan informasi bantuan
+💡 Tips Penggunaan
+Jalankan di Background: Gunakan run_bot.sh start untuk menjaga bot tetap berjalan setelah sesi SSH berakhir
+
+Pembaruan Otomatis: Bot bisa memeriksa pembaruan secara otomatis
+
+Perintah Kustom: Anda bisa menambahkan perintah khusus di folder commands
+
+🤝 Berkontribusi
+Kami menerima kontribusi! Silakan ajukan issue atau pull request untuk membantu pengembangan proyek ini.
+
+📜 Lisensi
+Proyek ini menggunakan lisensi MIT - lihat file LICENSE untuk detailnya.
+
+<div align="center"> <p>Nikmati kemudahan mengelola router OpenWrt melalui Telegram! ✨</p> <p>Kirim <code>/start</code> ke bot Anda untuk memulai!</p> </div>
