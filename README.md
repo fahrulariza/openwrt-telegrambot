@@ -92,8 +92,9 @@ cd /www/assisten/
 git clone https://github.com/fahrulariza/openwrt-telegrambot.git bot
 ```
 atau
-1. download manual [disini](https://github.com/fahrulariza/openwrt-telegrambot/archive/refs/heads/master.zip)
-2. letakkan semua file ke dalam folder `/www/asissten/bot/` sturktur bisa dilihat diatas. lanjut ke Lankah 2
+1. Download manual [disini](https://github.com/fahrulariza/openwrt-telegrambot/archive/refs/heads/master.zip)
+2. Letakkan semua file ke dalam folder `/www/asissten/bot/` sturktur bisa dilihat diatas. lanjut ke Lankah 2
+
 Langkah 2: Konfigurasi Token Bot & Akses Pengguna
 Buat bot Telegram baru melalui @BotFather dan dapatkan token API-nya.
 
