@@ -250,7 +250,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await context.bot.send_message(chat_id=query.message.chat_id, text="🔄 Memulai proses instalasi pembaruan. Bot akan memulai ulang setelah selesai.")
         # Panggil update.sh tanpa argumen --force
         subprocess.Popen(['/bin/sh', os.path.join(SCRIPT_DIR, 'update.sh')])
-        await context.application.stop()
         return
     
     if len(command_parts) >= 3 and action in LOADED_MODULES:
