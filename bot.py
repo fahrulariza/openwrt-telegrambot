@@ -228,13 +228,18 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         else:
             logger.error(f"Gagal menghapus pesan: {e}")
             
+    # Tangani tombol 'Kembali' secara universal
     if action == "back_to_main_menu":
         await send_main_menu(update, context, sorted(list(ACTIVE_DEVICES)))
         return
     
+    # Tangani tombol 'Pilih Perangkat'
     if action == "select":
         selected_device = command_parts[1]
-        await send_device_menu(update, context, selected_device)
+        if selected_device == DEVICE_ID:
+            await send_device_menu(update, context, selected_device)
+        else:
+            logger.warning(f"Tombol ditekan untuk perangkat lain: {selected_device}. Mengabaikan.")
         return
     
     if action == "install_update":
