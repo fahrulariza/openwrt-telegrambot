@@ -214,15 +214,11 @@ async def reload_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             text=f"🔄 **{os.environ.get('DEVICE_ID')}** menerima sinyal pembaruan paksa. Memulai ulang bot...",
             parse_mode='Markdown'
         )
-
-        # Jalankan skrip update.sh untuk memulai ulang bot ini
-        subprocess.Popen(['/bin/sh', os.path.join(SCRIPT_DIR, 'update.sh')])
         
-        # Hentikan proses bot saat ini
+        # Jalankan skrip update.sh dan keluar dari bot secara bersih
+        subprocess.Popen(['/bin/sh', os.path.join(SCRIPT_DIR, 'update.sh')])
         await context.application.stop()
-        await context.application.updater.shutdown()
-        sys.exit()
-
+        
 @check_access
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Menangani semua tombol yang ditekan."""
@@ -257,6 +253,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     if action == "install_update":
         await context.bot.send_message(chat_id=query.message.chat_id, text="🔄 Memulai proses instalasi pembaruan. Bot akan memulai ulang setelah selesai.")
         subprocess.Popen(['/bin/sh', os.path.join(SCRIPT_DIR, 'update.sh')])
+        await context.application.stop()
         return
     
     # Cek tombol perintah dinamis
@@ -335,42 +332,34 @@ def main() -> None:
 
     logger.info(f"DEVICE_ID lokal yang terdeteksi: '{DEVICE_ID}'")
     load_allowed_users()
-
-    while True:
-        try:
-            application = Application.builder().token(token).build()
-            
-            load_commands(application)
-            application.add_handler(CommandHandler("start", check_access(start)))
-            application.add_handler(CallbackQueryHandler(check_access(button_handler)))
-            application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.Regex(r'^ACTIVE\|.*'), presence_handler))
-            application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.Regex(r'^RELOAD\|ALL'), reload_handler))
-
-            # Tambahkan job queue
-            application.job_queue.run_repeating(send_presence, interval=180, first=5)
-            application.job_queue.run_repeating(clear_inactive_devices, interval=600, first=10)
-
-            logger.info("Application started. Bot sedang aktif.")
-            
-            # Gunakan asyncio.run() untuk menjalankan polling dalam loop event yang terisolasi
-            asyncio.run(application.run_polling(allowed_updates=Update.ALL_TYPES, close_loop=False))
+    
+    try:
+        application = Application.builder().token(token).build()
         
-        except telegram.error.Conflict:
-            logger.warning("Token sedang digunakan oleh bot lain. Menunggu 5 detik...")
-            time.sleep(5)
-            
-        except Exception as e:
-            logger.error(f"Kesalahan tak terduga: {e}. Bot akan mencoba lagi dalam 5 detik.")
-            time.sleep(5)
+        load_commands(application)
+        application.add_handler(CommandHandler("start", check_access(start)))
+        application.add_handler(CallbackQueryHandler(check_access(button_handler)))
+        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.Regex(r'^ACTIVE\|.*'), presence_handler))
+        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.Regex(r'^RELOAD\|ALL'), reload_handler))
         
-        # Tambahan: Tutup event loop yang lama sebelum mencoba lagi
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                loop.stop()
-            loop.close()
-        except Exception:
-            pass
+        # Tambahkan job queue
+        application.job_queue.run_repeating(send_presence, interval=180, first=5)
+        application.job_queue.run_repeating(clear_inactive_devices, interval=600, first=10)
+
+        logger.info("Application started. Bot sedang aktif.")
+        
+        # Jalankan polling dalam loop yang terisolasi
+        asyncio.run(application.run_polling(allowed_updates=Update.ALL_TYPES))
+    
+    except telegram.error.Conflict:
+        logger.warning("Token sedang digunakan oleh bot lain. Menunggu 5 detik...")
+        time.sleep(5)
+        # Jalankan kembali proses ini jika terjadi konflik
+        os.execv(sys.executable, ['python3'] + sys.argv)
+    except Exception as e:
+        logger.error(f"Kesalahan tak terduga: {e}. Bot akan mencoba lagi dalam 5 detik.")
+        time.sleep(5)
+        os.execv(sys.executable, ['python3'] + sys.argv)
 
 if __name__ == '__main__':
     main()
