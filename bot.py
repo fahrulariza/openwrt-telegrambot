@@ -333,33 +333,30 @@ def main() -> None:
     logger.info(f"DEVICE_ID lokal yang terdeteksi: '{DEVICE_ID}'")
     load_allowed_users()
     
-    try:
-        application = Application.builder().token(token).build()
-        
-        load_commands(application)
-        application.add_handler(CommandHandler("start", check_access(start)))
-        application.add_handler(CallbackQueryHandler(check_access(button_handler)))
-        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.Regex(r'^ACTIVE\|.*'), presence_handler))
-        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.Regex(r'^RELOAD\|ALL'), reload_handler))
-        
-        # Tambahkan job queue
-        application.job_queue.run_repeating(send_presence, interval=180, first=5)
-        application.job_queue.run_repeating(clear_inactive_devices, interval=600, first=10)
-
-        logger.info("Application started. Bot sedang aktif.")
-        
-        # Jalankan polling dalam loop yang terisolasi
-        asyncio.run(application.run_polling(allowed_updates=Update.ALL_TYPES))
+    application = Application.builder().token(token).build()
     
+    load_commands(application)
+    application.add_handler(CommandHandler("start", check_access(start)))
+    application.add_handler(CallbackQueryHandler(check_access(button_handler)))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.Regex(r'^ACTIVE\|.*'), presence_handler))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.Regex(r'^RELOAD\|ALL'), reload_handler))
+    
+    application.job_queue.run_repeating(send_presence, interval=180, first=5)
+    application.job_queue.run_repeating(clear_inactive_devices, interval=600, first=10)
+
+    logger.info("Application started. Bot sedang aktif.")
+    
+    try:
+        asyncio.run(application.run_polling(allowed_updates=Update.ALL_TYPES))
     except telegram.error.Conflict:
         logger.warning("Token sedang digunakan oleh bot lain. Menunggu 5 detik...")
         time.sleep(5)
-        # Jalankan kembali proses ini jika terjadi konflik
+        # Restart dari sini jika ada konflik token
         os.execv(sys.executable, ['python3'] + sys.argv)
     except Exception as e:
-        logger.error(f"Kesalahan tak terduga: {e}. Bot akan mencoba lagi dalam 5 detik.")
-        time.sleep(5)
-        os.execv(sys.executable, ['python3'] + sys.argv)
-
+        logger.error(f"Kesalahan tak terduga: {e}. Bot akan keluar.")
+        # Tidak ada lagi restart otomatis, biarkan bot mati.
+        # Skrip `run.sh` akan menanganinya.
+        
 if __name__ == '__main__':
     main()
