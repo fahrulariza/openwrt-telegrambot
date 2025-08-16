@@ -280,8 +280,8 @@ async def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, dev
     keyboard = [[InlineKeyboardButton(device, callback_data=f"select|{device}")] for device in sorted(devices_list)]
     
     update_script_path = os.path.join(SCRIPT_DIR, 'update.sh')
-    if os.path.exists(update_script_path):
-        keyboard.append([InlineKeyboardButton("Install Update", callback_data="install_update")])
+    # if os.path.exists(update_script_path):
+    #    keyboard.append([InlineKeyboardButton("Install Update", callback_data="install_update")])
         
     reply_markup = InlineKeyboardMarkup(keyboard)
     
