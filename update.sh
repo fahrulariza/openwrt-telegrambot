@@ -53,7 +53,7 @@ mkdir -p "$TEMP_DIR/cmd"
 # ... (bagian unduhan file tidak berubah) ...
 
 # Daftar file yang akan diunduh
-FILES="bot.py VERSION run_bot.sh update.sh pre_run.sh restart.sh"
+FILES="bot.py VERSION run_bot.sh update.sh pre_run.sh restart.sh force_update.sh "
 CMD_FILES="akses.py dhcp_leases.py force_update.py interface.py openclash.py reboot.py reload_bot.py status.py"
 
 for file in $FILES; do
