@@ -15,7 +15,8 @@ mkdir -p "$TEMP_DIR/cmd"
 
 # Daftar file yang akan diunduh
 FILES="bot.py VERSION run_bot.sh update.sh pre_run.sh restart.sh"
-CMD_FILES="akses.py dhcp_leases.py interface.py openclash.py reboot.py reload_bot.py status.py"
+CMD_FILES="akses.py dhcp_leases.py force_update.py interface.py openclash.py reboot.py reload_bot.py status.py"
+
 
 for file in $FILES; do
   wget -qO "$TEMP_DIR/$file" "$REPO_URL/$file"
