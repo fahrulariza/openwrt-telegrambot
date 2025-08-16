@@ -130,16 +130,12 @@ async def send_presence(context: ContextTypes.DEFAULT_TYPE):
 
     for chat_id in context.application.bot_data.get('main_chat_ids', []):
         try:
-            message = await context.bot.send_message(
+            await context.bot.send_message(
                 chat_id=chat_id,
                 text=f"ACTIVE|{DEVICE_ID}",
                 disable_notification=True,
                 disable_web_page_preview=True
             )
-            
-            if 'presence_messages' not in context.application.bot_data:
-                context.application.bot_data['presence_messages'] = {}
-            context.application.bot_data['presence_messages'][DEVICE_ID] = message.message_id
             
         except Exception as e:
             logger.error(f"Gagal mengirim pesan kehadiran ke chat {chat_id}: {e}")
@@ -159,23 +155,6 @@ async def clear_inactive_devices(context: ContextTypes.DEFAULT_TYPE):
     
     logger.info(f"Perangkat tidak aktif dihapus: {inactive_devices}")
 
-async def delete_presence_messages(context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Menghapus semua pesan kehadiran yang telah dikirim."""
-    if 'presence_messages' in context.application.bot_data:
-        for chat_id in context.application.bot_data.get('main_chat_ids', []):
-            try:
-                message_ids_to_delete = list(context.application.bot_data['presence_messages'].values())
-                for msg_id in message_ids_to_delete:
-                    try:
-                        await context.bot.delete_message(chat_id=chat_id, message_id=msg_id)
-                    except Exception:
-                        pass
-                
-            except Exception as e:
-                logger.error(f"Gagal menghapus pesan kehadiran di chat {chat_id}: {e}")
-        
-        context.application.bot_data['presence_messages'] = {}
-
 @check_access
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Menangani perintah /start."""
@@ -186,8 +165,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         context.application.bot_data['main_chat_ids'] = set()
     context.application.bot_data['main_chat_ids'].add(chat_id)
     
-    ACTIVE_DEVICES.add(DEVICE_ID) # Pastikan perangkat lokal selalu ada
-    
+    # Kosongkan daftar perangkat dan tambahkan perangkat lokal
+    ACTIVE_DEVICES.clear()
+    ACTIVE_DEVICES.add(DEVICE_ID)
+
+    # Kirim sinyal kehadiran dari perangkat lokal
     await context.bot.send_message(
         chat_id=chat_id,
         text=f"ACTIVE|{DEVICE_ID}",
@@ -195,10 +177,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         disable_web_page_preview=True
     )
     
-    await asyncio.sleep(2)
+    # Tunggu sebentar untuk memberi kesempatan bot lain merespons
+    await asyncio.sleep(3)
     
-    await delete_presence_messages(context)
-    
+    # Kirim menu utama dengan daftar perangkat yang merespons
     await send_main_menu(update, context, sorted(list(ACTIVE_DEVICES)))
 
 async def presence_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -211,15 +193,13 @@ async def presence_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         if 'last_seen' not in context.application.bot_data:
             context.application.bot_data['last_seen'] = {}
         context.application.bot_data['last_seen'][device_id] = datetime.datetime.now().timestamp()
-        
-        if 'presence_messages' not in context.application.bot_data:
-            context.application.bot_data['presence_messages'] = {}
-        context.application.bot_data['presence_messages'][device_id] = update.effective_message.message_id
 
+        # Tambahkan perangkat ke daftar aktif
         if device_id not in ACTIVE_DEVICES:
             ACTIVE_DEVICES.add(device_id)
             logger.info(f"Perangkat baru terdeteksi: {device_id}")
 
+        # Hapus pesan kehadiran yang masuk untuk menjaga chat tetap bersih
         try:
             await update.effective_message.delete()
         except Exception:
@@ -272,7 +252,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 )
             return
 
-    logger.warning(f"Tombol ditekan, tetapi tidak cocok dengan DEVICE_ID lokal. Mengabaikan.")
+    logger.warning("Tombol ditekan, tetapi tidak cocok dengan DEVICE_ID lokal. Mengabaikan.")
 
 async def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, devices_list) -> Message:
     """Mengirim menu utama pilihan perangkat dan mengembalikan objek pesan."""
