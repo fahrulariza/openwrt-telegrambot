@@ -228,7 +228,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         else:
             logger.error(f"Gagal menghapus pesan: {e}")
             
-    # Tangani tombol 'Kembali' secara universal
+    # Tangani tombol 'Kembali ke Menu Utama'
     if action == "back_to_main_menu":
         await send_main_menu(update, context, sorted(list(ACTIVE_DEVICES)))
         return
