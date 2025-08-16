@@ -1,34 +1,31 @@
 import os
 import logging
+import subprocess
 from telegram import Update
 from telegram.ext import ContextTypes
 
 logger = logging.getLogger(__name__)
 
+# Lokasi skrip force_update.sh
+SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FORCE_UPDATE_SCRIPT = os.path.join(SCRIPT_DIR, "force_update.sh")
+
 async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE, command_data: str = None) -> None:
-    """Menangani perintah /force_update untuk memaksa pembaruan di semua perangkat."""
+    """Menangani perintah /force_update untuk memaksa pembaruan."""
     
     chat_id = update.effective_chat.id
     
-    # Kirim pesan notifikasi kepada pengguna
-    message = "🚨 **Memaksa pembaruan di semua perangkat...**"
+    # Kirim pesan notifikasi
+    message = "🚨 **Memaksa pembaruan perangkat saat ini...**"
     await context.bot.send_message(
         chat_id=chat_id,
         text=message,
         parse_mode='Markdown'
     )
-    logger.info("Perintah /force_update diterima. Mengirim sinyal pembaruan paksa ke semua perangkat.")
+    logger.info("Perintah /force_update diterima. Memulai skrip pembaruan paksa.")
 
-    # Kirim pesan khusus ke semua chat utama
-    if 'main_chat_ids' in context.application.bot_data:
-        for target_chat_id in context.application.bot_data['main_chat_ids']:
-            try:
-                # Baris ini yang paling penting
-                await context.bot.send_message(
-                    chat_id=target_chat_id,
-                    text="RELOAD|ALL",
-                    disable_notification=True,
-                    disable_web_page_preview=True
-                )
-            except Exception as e:
-                logger.error(f"Gagal mengirim sinyal RELOAD|ALL ke chat {target_chat_id}: {e}")
+    # Jalankan skrip force_update.sh secara asinkron
+    subprocess.Popen(['/bin/sh', FORCE_UPDATE_SCRIPT])
+    
+    # Hentikan bot saat ini
+    await context.application.stop()
