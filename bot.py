@@ -165,11 +165,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         context.application.bot_data['main_chat_ids'] = set()
     context.application.bot_data['main_chat_ids'].add(chat_id)
     
-    # Kosongkan daftar perangkat dan tambahkan perangkat lokal
     ACTIVE_DEVICES.clear()
     ACTIVE_DEVICES.add(DEVICE_ID)
 
-    # Kirim sinyal kehadiran dari perangkat lokal
     await context.bot.send_message(
         chat_id=chat_id,
         text=f"ACTIVE|{DEVICE_ID}",
@@ -177,10 +175,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         disable_web_page_preview=True
     )
     
-    # Tunggu sebentar untuk memberi kesempatan bot lain merespons
     await asyncio.sleep(3)
     
-    # Kirim menu utama dengan daftar perangkat yang merespons
     await send_main_menu(update, context, sorted(list(ACTIVE_DEVICES)))
 
 async def presence_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -194,12 +190,10 @@ async def presence_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             context.application.bot_data['last_seen'] = {}
         context.application.bot_data['last_seen'][device_id] = datetime.datetime.now().timestamp()
 
-        # Tambahkan perangkat ke daftar aktif
         if device_id not in ACTIVE_DEVICES:
             ACTIVE_DEVICES.add(device_id)
             logger.info(f"Perangkat baru terdeteksi: {device_id}")
 
-        # Hapus pesan kehadiran yang masuk untuk menjaga chat tetap bersih
         try:
             await update.effective_message.delete()
         except Exception:
@@ -215,32 +209,38 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     command_parts = command_data.split('|')
     action = command_parts[0]
     
+    # Hapus pesan tombol sebelumnya untuk menghindari spam dan kebingungan
+    try:
+        await query.message.delete()
+    except telegram.error.BadRequest as e:
+        if "message to delete not found" in str(e):
+            logger.warning("Gagal menghapus pesan, pesan sudah terhapus. Melanjutkan.")
+        else:
+            logger.error(f"Gagal menghapus pesan: {e}")
+            
+    # Cek tombol "back_to_main_menu"
     if action == "back_to_main_menu":
-        try: await query.message.delete()
-        except Exception: pass
-        await send_main_menu(update, context, list(ACTIVE_DEVICES))
+        await send_main_menu(update, context, sorted(list(ACTIVE_DEVICES)))
         return
-
+    
+    # Cek tombol "select" untuk memilih perangkat
     if action == "select":
-        try: await query.message.delete()
-        except Exception: pass
         selected_device = command_parts[1]
         await send_device_menu(update, context, selected_device)
         return
-
-    elif action == "install_update":
+    
+    # Cek tombol "install_update"
+    if action == "install_update":
         await context.bot.send_message(chat_id=query.message.chat_id, text="🔄 Memulai proses instalasi pembaruan. Bot akan memulai ulang setelah selesai.")
         subprocess.Popen(['/bin/sh', '/www/assisten/bot/update.sh'])
         return
     
+    # Cek tombol perintah dinamis
     if len(command_parts) >= 3 and action in LOADED_MODULES:
         command_name = action
         selected_device = command_parts[2]
         
         if selected_device == DEVICE_ID:
-            try: await query.message.delete()
-            except Exception: pass
-            
             try:
                 await LOADED_MODULES[command_name].execute(update, context, command_data)
                 logger.info(f"Perintah /{command_name} berhasil dijalankan pada '{DEVICE_ID}'.")
@@ -252,11 +252,22 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 )
             return
 
-    logger.warning("Tombol ditekan, tetapi tidak cocok dengan DEVICE_ID lokal. Mengabaikan.")
+    # LOG PESAN PERINGATAN DENGAN DEVICE_ID
+    remote_device_id = "UNKNOWN_DEVICE"
+    if len(command_parts) >= 3:
+        remote_device_id = command_parts[2]
+    
+    logger.warning(f"Tombol ditekan oleh '{remote_device_id}', tetapi tidak cocok dengan DEVICE_ID lokal '{DEVICE_ID}'. Mengabaikan.")
 
 async def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, devices_list) -> Message:
     """Mengirim menu utama pilihan perangkat dan mengembalikan objek pesan."""
     keyboard = [[InlineKeyboardButton(device, callback_data=f"select|{device}")] for device in sorted(devices_list)]
+    
+    # Tambahkan tombol "install_update" hanya jika skrip update.sh ada
+    update_script_path = os.path.join(SCRIPT_DIR, 'update.sh')
+    if os.path.exists(update_script_path):
+        keyboard.append([InlineKeyboardButton("Install Update", callback_data="install_update")])
+        
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     if update.callback_query:
@@ -310,19 +321,31 @@ def main() -> None:
             application.add_handler(CallbackQueryHandler(check_access(button_handler)))
             application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.Regex(r'^ACTIVE\|.*'), presence_handler))
 
+            # Tambahkan job queue
             application.job_queue.run_repeating(send_presence, interval=180, first=5)
             application.job_queue.run_repeating(clear_inactive_devices, interval=600, first=10)
 
             logger.info("Application started. Bot sedang aktif.")
-            application.run_polling(allowed_updates=Update.ALL_TYPES)
+            
+            # Gunakan asyncio.run() untuk menjalankan polling dalam loop event yang terisolasi
+            asyncio.run(application.run_polling(allowed_updates=Update.ALL_TYPES, close_loop=False))
         
         except telegram.error.Conflict:
-            logger.warning("Token sedang digunakan oleh bot lain. Menunggu 2 detik...")
-            time.sleep(2)
-        
+            logger.warning("Token sedang digunakan oleh bot lain. Menunggu 5 detik...")
+            time.sleep(5)
+            
         except Exception as e:
             logger.error(f"Kesalahan tak terduga: {e}. Bot akan mencoba lagi dalam 5 detik.")
             time.sleep(5)
-            
+        
+        # Tambahan: Tutup event loop yang lama sebelum mencoba lagi
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                loop.stop()
+            loop.close()
+        except Exception:
+            pass
+
 if __name__ == '__main__':
     main()
