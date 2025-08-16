@@ -79,6 +79,9 @@ pip3 install python-telegram-bot
 ```
 pip3 install paramiko
 ```
+```
+pip install "python-telegram-bot[job-queue]"
+```
 
 ### ⚙️ Panduan Instalasi
 Ikuti langkah-langkah di bawah ini untuk menginstal bot di router OpenWrt.
