@@ -168,15 +168,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     ACTIVE_DEVICES.clear()
     ACTIVE_DEVICES.add(DEVICE_ID)
 
-    await context.bot.send_message(
-        chat_id=chat_id,
-        text=f"ACTIVE|{DEVICE_ID}",
-        disable_notification=True,
-        disable_web_page_preview=True
-    )
-    
-    await asyncio.sleep(3)
-    
     await send_main_menu(update, context, sorted(list(ACTIVE_DEVICES)))
 
 async def presence_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
