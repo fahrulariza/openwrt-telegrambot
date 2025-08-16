@@ -1,3 +1,5 @@
+# File: cmd/update.py
+
 import os
 import logging
 import subprocess
@@ -8,9 +10,9 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Message
 
 logger = logging.getLogger(__name__)
 
-async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE, command_data: str = None) -> None:
     """
-    Menangani perintah /update.
+    Menangani perintah /update dan callback dari tombol.
     Fungsi ini menampilkan versi lokal dan versi GitHub dan
     menawarkan tombol untuk pembaruan jika versi baru tersedia.
     """
