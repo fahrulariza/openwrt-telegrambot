@@ -7,9 +7,41 @@ GITHUB_REPO="fahrulariza/openwrt-telegrambot"
 REPO_URL="https://raw.githubusercontent.com/$GITHUB_REPO/master"
 BOT_DIR="/www/assisten/bot"
 TEMP_DIR="/tmp/bot_update"
+VERSION_FILE="$BOT_DIR/VERSION"
 
-echo "Mulai mengunduh file..."
+echo "Memeriksa versi..."
 
+# Dapatkan versi lokal
+if [ -f "$VERSION_FILE" ]; then
+    LOCAL_VERSION=$(cat "$VERSION_FILE")
+else
+    # Jika file VERSION tidak ada, anggap versi lokal 0
+    LOCAL_VERSION="0.0"
+fi
+echo "Versi lokal: $LOCAL_VERSION"
+
+# Dapatkan versi terbaru dari GitHub
+GITHUB_VERSION=$(wget -qO - "$REPO_URL/VERSION")
+
+if [ -z "$GITHUB_VERSION" ]; then
+    echo "Gagal mendapatkan versi dari GitHub. Membatalkan pembaruan."
+    /www/assisten/bot/run_bot.sh start
+    exit 1
+fi
+
+echo "Versi GitHub: $GITHUB_VERSION"
+
+# Bandingkan versi
+if [ "$LOCAL_VERSION" = "$GITHUB_VERSION" ]; then
+    echo "Bot sudah diperbarui ke versi terbaru. Tidak ada yang perlu diunduh."
+    rm -rf "$TEMP_DIR"
+    /www/assisten/bot/run_bot.sh start
+    exit 0
+else
+    echo "Versi baru tersedia. Memulai proses pembaruan..."
+fi
+
+# --- Mulai Proses Unduhan (Hanya jika versi berbeda) ---
 rm -rf "$TEMP_DIR"
 mkdir -p "$TEMP_DIR/cmd"
 
@@ -17,11 +49,12 @@ mkdir -p "$TEMP_DIR/cmd"
 FILES="bot.py VERSION run_bot.sh update.sh pre_run.sh restart.sh"
 CMD_FILES="akses.py dhcp_leases.py force_update.py interface.py openclash.py reboot.py reload_bot.py status.py"
 
-
 for file in $FILES; do
   wget -qO "$TEMP_DIR/$file" "$REPO_URL/$file"
   if [ $? -ne 0 ]; then
     echo "Gagal mengunduh $file. Menghentikan pembaruan."
+    rm -rf "$TEMP_DIR"
+    /www/assisten/bot/run_bot.sh start
     exit 1
   fi
 done
@@ -30,6 +63,8 @@ for file in $CMD_FILES; do
   wget -qO "$TEMP_DIR/cmd/$file" "$REPO_URL/cmd/$file"
   if [ $? -ne 0 ]; then
     echo "Gagal mengunduh cmd/$file. Menghentikan pembaruan."
+    rm -rf "$TEMP_DIR"
+    /www/assisten/bot/run_bot.sh start
     exit 1
   fi
 done
