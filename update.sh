@@ -1,61 +1,74 @@
 #!/bin/sh
 
-# Hentikan bot sebelum memulai update
-/www/assisten/bot/run_bot.sh stop
+# File ini berfungsi untuk mengelola pembaruan bot,
+# baik secara normal maupun paksa.
 
+# Tentukan lokasi dan URL repositori
+SCRIPT_DIR="/www/assisten/bot"
 GITHUB_REPO="fahrulariza/openwrt-telegrambot"
 REPO_URL="https://raw.githubusercontent.com/$GITHUB_REPO/master"
-BOT_DIR="/www/assisten/bot"
+VERSION_FILE="$SCRIPT_DIR/VERSION"
 TEMP_DIR="/tmp/bot_update"
-VERSION_FILE="$BOT_DIR/VERSION"
 
-# Cek argumen --force
+# --- Tangani Argumen ---
 FORCE_UPDATE=0
+CHECK_ONLY=0
+
 if [ "$1" = "--force" ]; then
     FORCE_UPDATE=1
-    echo "Pembaruan paksa diaktifkan. Melewati pemeriksaan versi."
+    echo "Pembaruan paksa diaktifkan."
+elif [ "$1" = "--check" ]; then
+    CHECK_ONLY=1
 fi
 
-# Dapatkan versi terbaru dari GitHub (hanya jika tidak ada pembaruan paksa)
-if [ $FORCE_UPDATE -eq 0 ]; then
-    echo "Memeriksa versi..."
-    # Dapatkan versi lokal
-    if [ -f "$VERSION_FILE" ]; then
-        LOCAL_VERSION=$(cat "$VERSION_FILE")
-    else
-        LOCAL_VERSION="0.0"
-    fi
-    echo "Versi lokal: $LOCAL_VERSION"
+# --- Cek Versi ---
+echo "Memeriksa versi..."
+if [ -f "$VERSION_FILE" ]; then
+    LOCAL_VERSION=$(cat "$VERSION_FILE")
+else
+    LOCAL_VERSION="0.0"
+fi
+echo "Versi lokal: $LOCAL_VERSION"
 
-    GITHUB_VERSION=$(wget -qO - "$REPO_URL/VERSION")
-    if [ -z "$GITHUB_VERSION" ]; then
-        echo "Gagal mendapatkan versi dari GitHub. Membatalkan pembaruan."
-        /www/assisten/bot/run_bot.sh start
+GITHUB_VERSION=$(wget -qO - "$REPO_URL/VERSION")
+if [ -z "$GITHUB_VERSION" ]; then
+    echo "Gagal mendapatkan versi dari GitHub."
+    if [ $CHECK_ONLY -eq 1 ]; then
         exit 1
     fi
-    echo "Versi GitHub: $GITHUB_VERSION"
+    /www/assisten/bot/run_bot.sh start
+    exit 1
+fi
+echo "Versi GitHub: $GITHUB_VERSION"
 
-    # Bandingkan versi
-    if [ "$LOCAL_VERSION" = "$GITHUB_VERSION" ]; then
-        echo "Bot sudah diperbarui ke versi terbaru. Tidak ada yang perlu diunduh."
-        rm -rf "$TEMP_DIR"
-        /www/assisten/bot/run_bot.sh start
-        exit 0
-    fi
-    echo "Versi baru tersedia. Memulai proses pembaruan..."
+# Jika hanya mode cek, keluar setelah menampilkan versi
+if [ $CHECK_ONLY -eq 1 ]; then
+    exit 0
 fi
 
-# --- SISA SKRIP UNTUK PROSES UNDUHAN DAN INSTALASI ---
+# --- Bandingkan Versi (Jika Bukan Pembaruan Paksa) ---
+if [ $FORCE_UPDATE -eq 0 ] && [ "$LOCAL_VERSION" = "$GITHUB_VERSION" ]; then
+    echo "Bot sudah diperbarui ke versi terbaru. Tidak ada yang perlu diunduh."
+    /www/assisten/bot/run_bot.sh start
+    exit 0
+fi
+
+# --- Proses Pembaruan ---
 echo "Mulai mengunduh file..."
+
+# Hentikan bot sebelum memulai unduhan
+/www/assisten/bot/run_bot.sh stop
+sleep 2
+
+# Hapus dan buat direktori sementara
 rm -rf "$TEMP_DIR"
 mkdir -p "$TEMP_DIR/cmd"
 
-# ... (bagian unduhan file tidak berubah) ...
-
 # Daftar file yang akan diunduh
-FILES="bot.py VERSION run_bot.sh update.sh pre_run.sh restart.sh force_update.sh "
-CMD_FILES="akses.py dhcp_leases.py force_update.py interface.py openclash.py reboot.py reload_bot.py status.py"
+FILES="bot.py VERSION run_bot.sh update.sh pre_run.sh restart.sh force_update.sh"
+CMD_FILES="akses.py dhcp_leases.py force_update.py interface.py openclash.py reboot.py reload_bot.py status.py update.py"
 
+# Unduh file utama
 for file in $FILES; do
   wget -qO "$TEMP_DIR/$file" "$REPO_URL/$file"
   if [ $? -ne 0 ]; then
@@ -66,6 +79,7 @@ for file in $FILES; do
   fi
 done
 
+# Unduh file perintah
 for file in $CMD_FILES; do
   wget -qO "$TEMP_DIR/cmd/$file" "$REPO_URL/cmd/$file"
   if [ $? -ne 0 ]; then
@@ -78,22 +92,25 @@ done
 
 echo "Unduhan berhasil. Memasang file baru..."
 
-cp -f "$TEMP_DIR/bot.py" "$BOT_DIR/bot.py"
-cp -f "$TEMP_DIR/VERSION" "$BOT_DIR/VERSION"
-cp -f "$TEMP_DIR/run_bot.sh" "$BOT_DIR/run_bot.sh"
-cp -f "$TEMP_DIR/update.sh" "$BOT_DIR/update.sh"
-cp -f "$TEMP_DIR/pre_run.sh" "$BOT_DIR/pre_run.sh"
-cp -f "$TEMP_DIR/restart.sh" "$BOT_DIR/restart.sh"
-cp -f "$TEMP_DIR/cmd/"* "$BOT_DIR/cmd/"
+# Salin file ke direktori bot
+cp -f "$TEMP_DIR/bot.py" "$SCRIPT_DIR/bot.py"
+cp -f "$TEMP_DIR/VERSION" "$SCRIPT_DIR/VERSION"
+cp -f "$TEMP_DIR/run_bot.sh" "$SCRIPT_DIR/run_bot.sh"
+cp -f "$TEMP_DIR/update.sh" "$SCRIPT_DIR/update.sh"
+cp -f "$TEMP_DIR/pre_run.sh" "$SCRIPT_DIR/pre_run.sh"
+cp -f "$TEMP_DIR/restart.sh" "$SCRIPT_DIR/restart.sh"
+cp -f "$TEMP_DIR/force_update.sh" "$SCRIPT_DIR/force_update.sh"
+cp -f "$TEMP_DIR/cmd/"* "$SCRIPT_DIR/cmd/"
 
 rm -rf "$TEMP_DIR"
 
 echo "Memperbaiki izin dan format file..."
-SCRIPTS="bot.py pre_run.sh restart.sh run_bot.sh update.sh"
+# Konversi ke format Unix dan berikan izin eksekusi
+SCRIPTS="bot.py pre_run.sh restart.sh run_bot.sh update.sh force_update.sh"
 for script in $SCRIPTS; do
-  if [ -f "$BOT_DIR/$script" ]; then
-    chmod +x "$BOT_DIR/$script"
-    dos2unix "$BOT_DIR/$script"
+  if [ -f "$SCRIPT_DIR/$script" ]; then
+    dos2unix "$SCRIPT_DIR/$script"
+    chmod +x "$SCRIPT_DIR/$script"
   fi
 done
 
