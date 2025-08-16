@@ -9,41 +9,48 @@ BOT_DIR="/www/assisten/bot"
 TEMP_DIR="/tmp/bot_update"
 VERSION_FILE="$BOT_DIR/VERSION"
 
-echo "Memeriksa versi..."
-
-# Dapatkan versi lokal
-if [ -f "$VERSION_FILE" ]; then
-    LOCAL_VERSION=$(cat "$VERSION_FILE")
-else
-    # Jika file VERSION tidak ada, anggap versi lokal 0
-    LOCAL_VERSION="0.0"
-fi
-echo "Versi lokal: $LOCAL_VERSION"
-
-# Dapatkan versi terbaru dari GitHub
-GITHUB_VERSION=$(wget -qO - "$REPO_URL/VERSION")
-
-if [ -z "$GITHUB_VERSION" ]; then
-    echo "Gagal mendapatkan versi dari GitHub. Membatalkan pembaruan."
-    /www/assisten/bot/run_bot.sh start
-    exit 1
+# Cek argumen --force
+FORCE_UPDATE=0
+if [ "$1" = "--force" ]; then
+    FORCE_UPDATE=1
+    echo "Pembaruan paksa diaktifkan. Melewati pemeriksaan versi."
 fi
 
-echo "Versi GitHub: $GITHUB_VERSION"
+# Dapatkan versi terbaru dari GitHub (hanya jika tidak ada pembaruan paksa)
+if [ $FORCE_UPDATE -eq 0 ]; then
+    echo "Memeriksa versi..."
+    # Dapatkan versi lokal
+    if [ -f "$VERSION_FILE" ]; then
+        LOCAL_VERSION=$(cat "$VERSION_FILE")
+    else
+        LOCAL_VERSION="0.0"
+    fi
+    echo "Versi lokal: $LOCAL_VERSION"
 
-# Bandingkan versi
-if [ "$LOCAL_VERSION" = "$GITHUB_VERSION" ]; then
-    echo "Bot sudah diperbarui ke versi terbaru. Tidak ada yang perlu diunduh."
-    rm -rf "$TEMP_DIR"
-    /www/assisten/bot/run_bot.sh start
-    exit 0
-else
+    GITHUB_VERSION=$(wget -qO - "$REPO_URL/VERSION")
+    if [ -z "$GITHUB_VERSION" ]; then
+        echo "Gagal mendapatkan versi dari GitHub. Membatalkan pembaruan."
+        /www/assisten/bot/run_bot.sh start
+        exit 1
+    fi
+    echo "Versi GitHub: $GITHUB_VERSION"
+
+    # Bandingkan versi
+    if [ "$LOCAL_VERSION" = "$GITHUB_VERSION" ]; then
+        echo "Bot sudah diperbarui ke versi terbaru. Tidak ada yang perlu diunduh."
+        rm -rf "$TEMP_DIR"
+        /www/assisten/bot/run_bot.sh start
+        exit 0
+    fi
     echo "Versi baru tersedia. Memulai proses pembaruan..."
 fi
 
-# --- Mulai Proses Unduhan (Hanya jika versi berbeda) ---
+# --- SISA SKRIP UNTUK PROSES UNDUHAN DAN INSTALASI ---
+echo "Mulai mengunduh file..."
 rm -rf "$TEMP_DIR"
 mkdir -p "$TEMP_DIR/cmd"
+
+# ... (bagian unduhan file tidak berubah) ...
 
 # Daftar file yang akan diunduh
 FILES="bot.py VERSION run_bot.sh update.sh pre_run.sh restart.sh"
