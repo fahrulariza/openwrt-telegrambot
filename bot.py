@@ -228,12 +228,17 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         else:
             logger.error(f"Gagal menghapus pesan: {e}")
             
-    # Tangani tombol 'Kembali ke Menu Utama'
+    # --- LOGIKA TAMBAHAN UNTUK MENANGANI TOMBOL LAMA ---
+    if action == "back_to_device_menu":
+        logger.info("Tombol 'back_to_device_menu' terdeteksi. Mengarahkan ke menu utama.")
+        await send_main_menu(update, context, sorted(list(ACTIVE_DEVICES)))
+        return
+        
+    # --- LOGIKA TOMBOL STANDAR ---
     if action == "back_to_main_menu":
         await send_main_menu(update, context, sorted(list(ACTIVE_DEVICES)))
         return
     
-    # Tangani tombol 'Pilih Perangkat'
     if action == "select":
         selected_device = command_parts[1]
         if selected_device == DEVICE_ID:
