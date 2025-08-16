@@ -1,3 +1,5 @@
+# File: cmd/force_update.py
+
 import os
 import logging
 import subprocess
@@ -27,10 +29,6 @@ async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE, command_da
 
     # Jalankan skrip force_update.sh secara asinkron
     subprocess.Popen(['/bin/sh', FORCE_UPDATE_SCRIPT])
-
-    # Hapus baris ini untuk menghindari konflik:
-    # await context.application.stop()
     
-    # Sebagai alternatif, tambahkan jeda singkat dan log untuk debugging
-    await asyncio.sleep(5)
-    logger.info("Perintah pembaruan paksa berhasil dipicu. Bot akan berhenti.")
+    # Hapus baris ini:
+    # await context.application.stop()
