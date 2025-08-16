@@ -1,4 +1,5 @@
 import os
+import sys
 import importlib
 import subprocess
 import logging
@@ -6,11 +7,13 @@ import socket
 import datetime
 import asyncio
 import random
+import time
+import telegram
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, Message
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 from functools import wraps
 
-# --- Konfigurasi Logging ---
+# --- Konfigurasi Logging & Global State ---
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
@@ -19,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 # --- Konfigurasi Perangkat & Token ---
 DEVICE_ID = socket.gethostname().strip()
-os.environ['DEVICE_ID'] = DEVICE_ID # Set DEVICE_ID sebagai variabel lingkungan
+os.environ['DEVICE_ID'] = DEVICE_ID
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TOKEN_FILE = os.path.join(SCRIPT_DIR, "token.txt")
 AKSES_FILE = os.path.join(SCRIPT_DIR, "akses.txt")
@@ -99,7 +102,12 @@ def load_commands(application: Application):
             
             if process_new_file(filepath):
                 try:
-                    module = importlib.import_module(f'cmd.{module_name}')
+                    spec = importlib.util.spec_from_file_location(f"cmd.{module_name}", filepath)
+                    if spec is None:
+                        raise ImportError(f"Could not load module {module_name} from {filepath}")
+                    module = importlib.util.module_from_spec(spec)
+                    sys.modules[f"cmd.{module_name}"] = module
+                    spec.loader.exec_module(module)
                     
                     LOADED_MODULES[module_name] = module
                     
@@ -114,61 +122,74 @@ def load_commands(application: Application):
                     logger.error(f"Kesalahan tak terduga saat memuat modul '{module_name}': {e}")
 
 # --- Fungsi Menu & Handler ---
+async def send_presence(context: ContextTypes.DEFAULT_TYPE):
+    """Mengirim pesan 'ACTIVE' secara berkala ke chat dengan jeda acak."""
+    global ACTIVE_DEVICES
+    
+    await asyncio.sleep(random.uniform(0, 5)) 
+
+    for chat_id in context.application.bot_data.get('main_chat_ids', []):
+        try:
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text=f"ACTIVE|{DEVICE_ID}",
+                disable_notification=True,
+                disable_web_page_preview=True
+            )
+        except Exception as e:
+            logger.error(f"Gagal mengirim pesan kehadiran ke chat {chat_id}: {e}")
+
+async def clear_inactive_devices(context: ContextTypes.DEFAULT_TYPE):
+    """Menghapus perangkat yang tidak mengirim sinyal kehadiran dalam 10 menit terakhir."""
+    global ACTIVE_DEVICES
+    now = datetime.datetime.now().timestamp()
+    
+    devices_to_check = list(context.application.bot_data.get('last_seen', {}).keys())
+    inactive_devices = [
+        device for device in devices_to_check
+        if (now - context.application.bot_data['last_seen'].get(device, 0)) > 600
+    ]
+    for device in inactive_devices:
+        ACTIVE_DEVICES.discard(device)
+    
+    logger.info(f"Perangkat tidak aktif dihapus: {inactive_devices}")
+
 @check_access
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Menangani perintah /start dan menampilkan menu utama."""
+    """Menangani perintah /start."""
+    global ACTIVE_DEVICES
     chat_id = update.effective_chat.id
-    try:
-        await update.effective_message.delete()
-    except Exception:
-        pass
     
-    await asyncio.sleep(random.uniform(0.1, 0.5))
+    if 'main_chat_ids' not in context.application.bot_data:
+        context.application.bot_data['main_chat_ids'] = set()
+    context.application.bot_data['main_chat_ids'].add(chat_id)
     
-    if 'discovery_message_id' not in context.chat_data:
-        initial_message = await update.effective_message.reply_text("Mencari perangkat aktif...")
-        context.chat_data['discovery_message_id'] = initial_message.message_id
-        context.chat_data['active_devices'] = {DEVICE_ID}
-
-        await context.bot.send_message(
-            chat_id=chat_id,
-            text=f"ACTIVE|{DEVICE_ID}",
-            disable_notification=True,
-            disable_web_page_preview=True
-        )
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=f"ACTIVE|{DEVICE_ID}",
+        disable_notification=True,
+        disable_web_page_preview=True
+    )
     
     await asyncio.sleep(3)
     
-    if 'discovery_message_id' in context.chat_data:
-        try:
-            await context.bot.delete_message(chat_id=chat_id, message_id=context.chat_data['discovery_message_id'])
-        except Exception:
-            pass
-        finally:
-            del context.chat_data['discovery_message_id']
-            if 'active_devices' in context.chat_data:
-                await send_main_menu(update, context, list(context.chat_data['active_devices']))
-                del context.chat_data['active_devices']
-    else:
-        pass
+    await send_main_menu(update, context, list(ACTIVE_DEVICES))
 
-@check_access
 async def presence_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Menangani pesan 'ACTIVE' dari perangkat lain."""
-    if 'discovery_message_id' in context.chat_data and update.effective_message.text and update.effective_message.text.startswith("ACTIVE|"):
+    global ACTIVE_DEVICES
+    
+    if update.effective_message.text and update.effective_message.text.startswith("ACTIVE|"):
         device_id = update.effective_message.text.split('|')[1]
-        if device_id not in context.chat_data['active_devices']:
-            context.chat_data['active_devices'].add(device_id)
+        
+        if 'last_seen' not in context.application.bot_data:
+            context.application.bot_data['last_seen'] = {}
+        context.application.bot_data['last_seen'][device_id] = datetime.datetime.now().timestamp()
+
+        if device_id not in ACTIVE_DEVICES:
+            ACTIVE_DEVICES.add(device_id)
             logger.info(f"Perangkat baru terdeteksi: {device_id}")
-            devices_list_str = "\n".join(sorted(list(context.chat_data['active_devices'])))
-            try:
-                await context.bot.edit_message_text(
-                    chat_id=update.effective_chat.id,
-                    message_id=context.chat_data['discovery_message_id'],
-                    text=f"Mencari perangkat aktif...\n\nPerangkat ditemukan:\n{devices_list_str}"
-                )
-            except Exception:
-                pass
+            
         try:
             await update.effective_message.delete()
         except Exception:
@@ -184,42 +205,31 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     command_parts = command_data.split('|')
     action = command_parts[0]
     
-    if action in ["back_to_main_menu", "back_to_device_menu"]:
-        try:
-            await query.message.delete()
-        except Exception:
-            pass
-        if action == "back_to_main_menu":
-            await send_main_menu(update, context, list(ACTIVE_DEVICES))
-        elif action == "back_to_device_menu":
-            selected_device = command_parts[1]
-            await send_device_menu(update, context, selected_device)
+    if action == "back_to_main_menu":
+        try: await query.message.delete()
+        except Exception: pass
+        await send_main_menu(update, context, list(ACTIVE_DEVICES))
         return
-    
+
     if action == "select":
-        try:
-            await query.message.delete()
-        except Exception:
-            pass
+        try: await query.message.delete()
+        except Exception: pass
         selected_device = command_parts[1]
         await send_device_menu(update, context, selected_device)
         return
-    
+
     elif action == "install_update":
-        # Jalankan skrip pembaruan di latar belakang
         await context.bot.send_message(chat_id=query.message.chat_id, text="🔄 Memulai proses instalasi pembaruan. Bot akan memulai ulang setelah selesai.")
         subprocess.Popen(['/bin/sh', '/www/assisten/bot/update.sh'])
         return
-
-    if action in LOADED_MODULES:
+    
+    if len(command_parts) >= 3 and action in LOADED_MODULES:
         command_name = action
         selected_device = command_parts[2]
         
         if selected_device == DEVICE_ID:
-            try:
-                await query.message.delete()
-            except Exception:
-                pass
+            try: await query.message.delete()
+            except Exception: pass
             
             try:
                 await LOADED_MODULES[command_name].execute(update, context, command_data)
@@ -232,7 +242,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 )
             return
 
-    logger.warning(f"Tombol ditekan, tetapi tidak cocok dengan DEVICE_ID lokal ('{command_parts[2]}' != '{DEVICE_ID}'). Mengabaikan.")
+    logger.warning(f"Tombol ditekan, tetapi tidak cocok dengan DEVICE_ID lokal. Mengabaikan.")
 
 async def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, devices_list) -> Message:
     """Mengirim menu utama pilihan perangkat dan mengembalikan objek pesan."""
@@ -281,16 +291,28 @@ def main() -> None:
     logger.info(f"DEVICE_ID lokal yang terdeteksi: '{DEVICE_ID}'")
     load_allowed_users()
 
-    application = Application.builder().token(token).build()
-    
-    load_commands(application)
-    
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CallbackQueryHandler(button_handler))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.Regex(r'^ACTIVE\|.*'), presence_handler))
+    while True:
+        try:
+            application = Application.builder().token(token).build()
+            
+            load_commands(application)
+            application.add_handler(CommandHandler("start", check_access(start)))
+            application.add_handler(CallbackQueryHandler(check_access(button_handler)))
+            application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.Regex(r'^ACTIVE\|.*'), presence_handler))
 
-    logger.info("Application started. Bot sedang aktif.")
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+            application.job_queue.run_repeating(send_presence, interval=180, first=5)
+            application.job_queue.run_repeating(clear_inactive_devices, interval=600, first=10)
 
+            logger.info("Application started. Bot sedang aktif.")
+            application.run_polling(allowed_updates=Update.ALL_TYPES)
+        
+        except telegram.error.Conflict:
+            logger.warning("Token sedang digunakan oleh bot lain. Menunggu 2 detik...")
+            time.sleep(2)
+        
+        except Exception as e:
+            logger.error(f"Kesalahan tak terduga: {e}. Bot akan mencoba lagi dalam 5 detik.")
+            time.sleep(5)
+            
 if __name__ == '__main__':
     main()
