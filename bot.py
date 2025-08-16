@@ -252,12 +252,12 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 )
             return
 
-    # LOG PESAN PERINGATAN DENGAN DEVICE_ID
+    # LOG PESAN PERINGATAN DENGAN DEVICE_ID YANG LEBIH LENGKAP
     remote_device_id = "UNKNOWN_DEVICE"
     if len(command_parts) >= 3:
         remote_device_id = command_parts[2]
     
-    logger.warning(f"Tombol ditekan oleh '{remote_device_id}', tetapi tidak cocok dengan DEVICE_ID lokal '{DEVICE_ID}'. Mengabaikan.")
+    logger.warning(f"Tombol ditekan oleh '{remote_device_id}' untuk perintah '{action}', tetapi tidak cocok dengan DEVICE_ID lokal '{DEVICE_ID}'. Mengabaikan.")
 
 async def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, devices_list) -> Message:
     """Mengirim menu utama pilihan perangkat dan mengembalikan objek pesan."""
