@@ -1,12 +1,10 @@
 import os
 import logging
 import subprocess
+import asyncio
 from telegram import Update
 from telegram.ext import ContextTypes
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Message
-
-# Logikanya sekarang ada di bot.py, tapi kita tetap butuh file ini.
-# File ini digunakan untuk menangani perintah /update secara langsung.
 
 logger = logging.getLogger(__name__)
 
@@ -69,8 +67,3 @@ async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             chat_id=chat_id,
             text="❌ Maaf, terjadi kesalahan saat memeriksa pembaruan."
         )
-
-# Catatan: Fungsi `execute` ini menangani perintah `/update` secara langsung.
-# Untuk tombol "Install Update" (di `CallbackQueryHandler` di `bot.py`),
-# logikanya sudah dipindahkan ke sana, memanggil `subprocess.Popen` yang akan
-# menjalankan skrip `update.sh` yang sudah diperbaiki.
