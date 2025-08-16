@@ -215,8 +215,8 @@ async def reload_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             parse_mode='Markdown'
         )
         
-        # Jalankan skrip update.sh dan keluar dari bot secara bersih
-        subprocess.Popen(['/bin/sh', os.path.join(SCRIPT_DIR, 'update.sh')])
+        # Jalankan skrip update.sh dengan argumen --force dan keluar dari bot secara bersih
+        subprocess.Popen(['/bin/sh', os.path.join(SCRIPT_DIR, 'update.sh'), '--force'])
         await context.application.stop()
         
 @check_access
@@ -252,6 +252,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     # Cek tombol "install_update"
     if action == "install_update":
         await context.bot.send_message(chat_id=query.message.chat_id, text="🔄 Memulai proses instalasi pembaruan. Bot akan memulai ulang setelah selesai.")
+        # Panggil skrip update.sh tanpa argumen, biarkan ia memeriksa versi
         subprocess.Popen(['/bin/sh', os.path.join(SCRIPT_DIR, 'update.sh')])
         await context.application.stop()
         return
