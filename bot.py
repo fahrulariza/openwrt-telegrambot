@@ -206,7 +206,7 @@ async def reload_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         try:
             await update.effective_message.delete()
         except Exception:
-            pass # Abaikan jika pesan sudah terhapus
+            pass
             
         logger.info(f"Sinyal RELOAD|ALL diterima di perangkat '{DEVICE_ID}'. Memulai pembaruan paksa.")
         await context.bot.send_message(
@@ -215,7 +215,7 @@ async def reload_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             parse_mode='Markdown'
         )
         
-        # Jalankan skrip update.sh dengan argumen --force dan keluar dari bot secara bersih
+        # Jalankan skrip update.sh dengan argumen --force
         subprocess.Popen(['/bin/sh', os.path.join(SCRIPT_DIR, 'update.sh'), '--force'])
         await context.application.stop()
         
@@ -229,7 +229,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     command_parts = command_data.split('|')
     action = command_parts[0]
     
-    # Hapus pesan tombol sebelumnya untuk menghindari spam dan kebingungan
     try:
         await query.message.delete()
     except telegram.error.BadRequest as e:
@@ -238,26 +237,21 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         else:
             logger.error(f"Gagal menghapus pesan: {e}")
             
-    # Cek tombol "back_to_main_menu"
     if action == "back_to_main_menu":
         await send_main_menu(update, context, sorted(list(ACTIVE_DEVICES)))
         return
     
-    # Cek tombol "select" untuk memilih perangkat
     if action == "select":
         selected_device = command_parts[1]
         await send_device_menu(update, context, selected_device)
         return
     
-    # Cek tombol "install_update"
     if action == "install_update":
         await context.bot.send_message(chat_id=query.message.chat_id, text="🔄 Memulai proses instalasi pembaruan. Bot akan memulai ulang setelah selesai.")
-        # Panggil skrip update.sh tanpa argumen, biarkan ia memeriksa versi
         subprocess.Popen(['/bin/sh', os.path.join(SCRIPT_DIR, 'update.sh')])
         await context.application.stop()
         return
     
-    # Cek tombol perintah dinamis
     if len(command_parts) >= 3 and action in LOADED_MODULES:
         command_name = action
         selected_device = command_parts[2]
@@ -274,7 +268,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 )
             return
 
-    # LOG PESAN PERINGATAN DENGAN DEVICE_ID YANG LEBIH LENGKAP
     remote_device_id = "UNKNOWN_DEVICE"
     if len(command_parts) >= 3:
         remote_device_id = command_parts[2]
@@ -285,7 +278,6 @@ async def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, dev
     """Mengirim menu utama pilihan perangkat dan mengembalikan objek pesan."""
     keyboard = [[InlineKeyboardButton(device, callback_data=f"select|{device}")] for device in sorted(devices_list)]
     
-    # Tambahkan tombol "install_update" hanya jika skrip update.sh ada
     update_script_path = os.path.join(SCRIPT_DIR, 'update.sh')
     if os.path.exists(update_script_path):
         keyboard.append([InlineKeyboardButton("Install Update", callback_data="install_update")])
@@ -352,12 +344,9 @@ def main() -> None:
     except telegram.error.Conflict:
         logger.warning("Token sedang digunakan oleh bot lain. Menunggu 5 detik...")
         time.sleep(5)
-        # Restart dari sini jika ada konflik token
         os.execv(sys.executable, ['python3'] + sys.argv)
     except Exception as e:
         logger.error(f"Kesalahan tak terduga: {e}. Bot akan keluar.")
-        # Tidak ada lagi restart otomatis, biarkan bot mati.
-        # Skrip `run.sh` akan menanganinya.
         
 if __name__ == '__main__':
     main()
