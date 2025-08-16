@@ -199,6 +199,30 @@ async def presence_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         except Exception:
             pass
 
+async def reload_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Menangani pesan RELOAD|ALL untuk memaksa pembaruan."""
+    
+    if update.effective_message.text == "RELOAD|ALL":
+        try:
+            await update.effective_message.delete()
+        except Exception:
+            pass # Abaikan jika pesan sudah terhapus
+            
+        logger.info(f"Sinyal RELOAD|ALL diterima di perangkat '{DEVICE_ID}'. Memulai pembaruan paksa.")
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"🔄 **{os.environ.get('DEVICE_ID')}** menerima sinyal pembaruan paksa. Memulai ulang bot...",
+            parse_mode='Markdown'
+        )
+
+        # Jalankan skrip update.sh untuk memulai ulang bot ini
+        subprocess.Popen(['/bin/sh', os.path.join(SCRIPT_DIR, 'update.sh')])
+        
+        # Hentikan proses bot saat ini
+        await context.application.stop()
+        await context.application.updater.shutdown()
+        sys.exit()
+
 @check_access
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Menangani semua tombol yang ditekan."""
@@ -232,7 +256,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     # Cek tombol "install_update"
     if action == "install_update":
         await context.bot.send_message(chat_id=query.message.chat_id, text="🔄 Memulai proses instalasi pembaruan. Bot akan memulai ulang setelah selesai.")
-        subprocess.Popen(['/bin/sh', '/www/assisten/bot/update.sh'])
+        subprocess.Popen(['/bin/sh', os.path.join(SCRIPT_DIR, 'update.sh')])
         return
     
     # Cek tombol perintah dinamis
@@ -320,6 +344,7 @@ def main() -> None:
             application.add_handler(CommandHandler("start", check_access(start)))
             application.add_handler(CallbackQueryHandler(check_access(button_handler)))
             application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.Regex(r'^ACTIVE\|.*'), presence_handler))
+            application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.Regex(r'^RELOAD\|ALL'), reload_handler))
 
             # Tambahkan job queue
             application.job_queue.run_repeating(send_presence, interval=180, first=5)
