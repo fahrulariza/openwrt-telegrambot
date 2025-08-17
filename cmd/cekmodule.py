@@ -31,7 +31,7 @@ async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE, command_da
         
         version = getattr(module, 'VERSION', 'Tidak ada')
         is_menu_command = getattr(module, 'IS_MENU_COMMAND', True)
-        status = "MENU" if is_menu_command else "TEKS"
+        status = "MENU" if is_menu_command else "CMD"
         
         safe_module_name = escape_markdown(module_name.capitalize(), version=2)
         safe_version = escape_markdown(str(version), version=2)
