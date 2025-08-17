@@ -3,7 +3,9 @@ import logging
 from telegram import Update
 from telegram.ext import ContextTypes
 
-# Tambahkan baris ini
+# versi modul
+VERSION = "3.5.0"
+# tampil sebagai menu pilihan
 IS_MENU_COMMAND = True
 
 logger = logging.getLogger(__name__)
