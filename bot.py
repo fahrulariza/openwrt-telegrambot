@@ -130,15 +130,38 @@ async def send_presence(context: ContextTypes.DEFAULT_TYPE):
 
     for chat_id in context.application.bot_data.get('main_chat_ids', []):
         try:
-            await context.bot.send_message(
-                chat_id=chat_id,
-                text=f"ACTIVE|{DEVICE_ID}",
-                disable_notification=True,
-                disable_web_page_preview=True
-            )
+            # Jika sudah ada ID pesan kehadiran, edit pesan yang sudah ada.
+            if 'presence_message_id' in context.application.bot_data and context.application.bot_data['presence_message_id']:
+                try:
+                    await context.bot.edit_message_text(
+                        chat_id=chat_id,
+                        message_id=context.application.bot_data['presence_message_id'],
+                        text=f"ACTIVE|{DEVICE_ID}",
+                        disable_web_page_preview=True
+                    )
+                except telegram.error.BadRequest as e:
+                    logger.warning(f"Gagal mengedit pesan kehadiran: {e}. Mengirim pesan baru sebagai cadangan.")
+                    # Jika gagal, hapus ID lama dan kirim pesan baru.
+                    context.application.bot_data['presence_message_id'] = None
+                    new_message = await context.bot.send_message(
+                        chat_id=chat_id,
+                        text=f"ACTIVE|{DEVICE_ID}",
+                        disable_notification=True,
+                        disable_web_page_preview=True
+                    )
+                    context.application.bot_data['presence_message_id'] = new_message.message_id
+            else:
+                # Jika belum ada ID pesan kehadiran, kirim pesan baru dan simpan ID-nya.
+                new_message = await context.bot.send_message(
+                    chat_id=chat_id,
+                    text=f"ACTIVE|{DEVICE_ID}",
+                    disable_notification=True,
+                    disable_web_page_preview=True
+                )
+                context.application.bot_data['presence_message_id'] = new_message.message_id
             
         except Exception as e:
-            logger.error(f"Gagal mengirim pesan kehadiran ke chat {chat_id}: {e}")
+            logger.error(f"Gagal mengirim atau mengedit pesan kehadiran ke chat {chat_id}: {e}")
 
 async def clear_inactive_devices(context: ContextTypes.DEFAULT_TYPE):
     """Menghapus perangkat yang tidak mengirim sinyal kehadiran dalam 10 menit terakhir."""
@@ -187,7 +210,8 @@ async def presence_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             logger.info(f"Perangkat baru terdeteksi: {device_id}")
 
         try:
-            await update.effective_message.delete()
+            # Karena pesan sudah dihapus, kita hanya perlu mengabaikan ini
+            pass
         except Exception:
             pass
 
@@ -230,7 +254,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             logger.error(f"Gagal menghapus pesan: {e}")
             
     # Tangani tombol 'Kembali ke Menu Utama'
-    if action == "back_to_main_menu":
+    if action in ["back_to_main_menu", "back_to_device_menu"]:
         await send_main_menu(update, context, sorted(list(ACTIVE_DEVICES)))
         return
     
