@@ -315,9 +315,9 @@ async def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, dev
     """Mengirim menu utama pilihan perangkat dan mengembalikan objek pesan."""
     keyboard = [[InlineKeyboardButton(device, callback_data=f"select|{device}")] for device in sorted(devices_list)]
     
-    update_script_path = os.path.join(SCRIPT_DIR, 'update.sh')
-    if os.path.exists(update_script_path):
-        keyboard.append([InlineKeyboardButton("Install Update", callback_data="install_update")])
+#    update_script_path = os.path.join(SCRIPT_DIR, 'update.sh')
+#    if os.path.exists(update_script_path):
+#        keyboard.append([InlineKeyboardButton("Install Update", callback_data="install_update")])
         
     reply_markup = InlineKeyboardMarkup(keyboard)
     
