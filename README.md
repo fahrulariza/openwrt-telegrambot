@@ -174,6 +174,8 @@ Setelah membuat file ini, kamu bisa mengaktifkan autostart dengan perintah:
 ```
 chmod +x /etc/init.d/telegram-bot
 /etc/init.d/telegram-bot enable
+/etc/init.d/telegram-bot stop
+/etc/init.d/telegram-bot start
 ```
 <div align="center">
 <p>Selesai! Sekarang bot Anda siap digunakan. Buka Telegram dan kirim perintah <code>/start</code> ke bot Anda.</p>
