@@ -6,7 +6,7 @@
 
 #### terminal.py
 modul untuk mengeksekusi perintah terminal dan menampilkan hasilnya di chat telegram bot
-`/terminal di Telegram, seperti:`
+`/terminal` di Telegram, seperti:
 ```
 /terminal ps | grep bot
 ```
