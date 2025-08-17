@@ -91,16 +91,18 @@ def process_new_file(filepath):
     return False
 
 def load_commands(application: Application):
-    """Memuat semua skrip Python dari direktori 'cmd'."""
+    """Memuat semua skrip Python dari direktori 'cmd' dan memisahkan perintah menu."""
     if not os.path.isdir(CMD_FOLDER):
         logger.error(f"Direktori '{CMD_FOLDER}' tidak ditemukan.")
         return
-    
+
+    application.bot_data['menu_commands'] = {}
+
     for filename in os.listdir(CMD_FOLDER):
         if filename.endswith('.py') and filename != '__init__.py':
             module_name = filename[:-3]
             filepath = os.path.join(CMD_FOLDER, filename)
-            
+
             if process_new_file(filepath):
                 try:
                     spec = importlib.util.spec_from_file_location(f"cmd.{module_name}", filepath)
@@ -109,12 +111,20 @@ def load_commands(application: Application):
                     module = importlib.util.module_from_spec(spec)
                     sys.modules[f"cmd.{module_name}"] = module
                     spec.loader.exec_module(module)
-                    
+
                     LOADED_MODULES[module_name] = module
-                    
+
                     if hasattr(module, 'execute'):
                         application.add_handler(CommandHandler(module_name, check_access(module.execute)))
                         logger.info(f"Perintah dimuat: /{module_name}")
+
+                        # Logika baru: cek apakah perintah harus tampil di menu
+                        is_menu_command = getattr(module, 'IS_MENU_COMMAND', True)
+                        if is_menu_command:
+                            application.bot_data['menu_commands'][module_name] = module
+                            logger.info(f"Perintah '{module_name}' ditambahkan ke menu.")
+                        else:
+                            logger.info(f"Perintah '{module_name}' tidak akan tampil di menu.")
                     else:
                         logger.info(f"Modul '{module_name}' dimuat, tetapi tidak memiliki CommandHandler.")
                 except ImportError as e:
@@ -303,9 +313,9 @@ async def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, dev
     """Mengirim menu utama pilihan perangkat dan mengembalikan objek pesan."""
     keyboard = [[InlineKeyboardButton(device, callback_data=f"select|{device}")] for device in sorted(devices_list)]
     
-    # update_script_path = os.path.join(SCRIPT_DIR, 'update.sh')
-    # if os.path.exists(update_script_path):
-    #    keyboard.append([InlineKeyboardButton("Install Update", callback_data="install_update")])
+    update_script_path = os.path.join(SCRIPT_DIR, 'update.sh')
+    if os.path.exists(update_script_path):
+        keyboard.append([InlineKeyboardButton("Install Update", callback_data="install_update")])
         
     reply_markup = InlineKeyboardMarkup(keyboard)
     
@@ -324,7 +334,7 @@ async def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, dev
 
 async def send_device_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, selected_device: str) -> None:
     """Mengirim menu perintah untuk perangkat tertentu secara dinamis."""
-    commands_list = sorted(list(LOADED_MODULES.keys()))
+    commands_list = sorted(list(context.application.bot_data.get('menu_commands', {}).keys()))
     
     keyboard = []
     for cmd in commands_list:
