@@ -4,6 +4,9 @@ from telegram.ext import ContextTypes
 import subprocess
 import logging
 
+# versi modul
+VERSION = "3.5.0"
+
 # Ganti dengan DEVICE_ID Anda
 DEVICE_ID = os.environ.get('DEVICE_ID', 'rumah-menteng.net')
 
