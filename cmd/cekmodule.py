@@ -5,7 +5,7 @@ from telegram.ext import ContextTypes
 from telegram.helpers import escape_markdown
 
 # versi modul
-VERSION = "3.5.1"
+VERSION = "1.5.1"
 
 IS_MENU_COMMAND = False
 
