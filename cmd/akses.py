@@ -5,6 +5,9 @@ import logging
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, Message
 from telegram.ext import ContextTypes
 
+# versi modul
+VERSION = "3.5.0"
+
 logger = logging.getLogger(__name__)
 
 # Konfigurasi file akses
