@@ -34,6 +34,7 @@ ALLOWED_USERS = set()
 LOADED_MODULES = {}
 LAST_COMMAND_MESSAGE_ID = {}
 ACTIVE_DEVICES = {DEVICE_ID}
+LAST_SENT_PRESENCE_TEXT = None
 
 def get_token(filename=TOKEN_FILE):
     """Membaca token bot dari file."""
@@ -123,43 +124,46 @@ def load_commands(application: Application):
 
 # --- Fungsi Menu & Handler ---
 async def send_presence(context: ContextTypes.DEFAULT_TYPE):
-    """Mengirim pesan 'ACTIVE' secara berkala ke chat dengan jeda acak."""
-    global ACTIVE_DEVICES
+    """Mengirim atau mengedit pesan 'ACTIVE' berdasarkan perubahan status."""
+    global ACTIVE_DEVICES, LAST_SENT_PRESENCE_TEXT
+    
+    current_presence_text = f"ACTIVE|{DEVICE_ID}"
+    
+    if current_presence_text == LAST_SENT_PRESENCE_TEXT:
+        return
+        
+    LAST_SENT_PRESENCE_TEXT = current_presence_text
     
     await asyncio.sleep(random.uniform(0, 5)) 
 
     for chat_id in context.application.bot_data.get('main_chat_ids', []):
         try:
-            # Jika sudah ada ID pesan kehadiran, edit pesan yang sudah ada.
             if 'presence_message_id' in context.application.bot_data and context.application.bot_data['presence_message_id']:
                 try:
                     await context.bot.edit_message_text(
                         chat_id=chat_id,
                         message_id=context.application.bot_data['presence_message_id'],
-                        text=f"ACTIVE|{DEVICE_ID}",
+                        text=current_presence_text,
                         disable_web_page_preview=True
                     )
                 except telegram.error.BadRequest as e:
                     logger.warning(f"Gagal mengedit pesan kehadiran: {e}. Mengirim pesan baru sebagai cadangan.")
-                    # Jika gagal, hapus ID lama dan kirim pesan baru.
                     context.application.bot_data['presence_message_id'] = None
                     new_message = await context.bot.send_message(
                         chat_id=chat_id,
-                        text=f"ACTIVE|{DEVICE_ID}",
+                        text=current_presence_text,
                         disable_notification=True,
                         disable_web_page_preview=True
                     )
                     context.application.bot_data['presence_message_id'] = new_message.message_id
             else:
-                # Jika belum ada ID pesan kehadiran, kirim pesan baru dan simpan ID-nya.
                 new_message = await context.bot.send_message(
                     chat_id=chat_id,
-                    text=f"ACTIVE|{DEVICE_ID}",
+                    text=current_presence_text,
                     disable_notification=True,
                     disable_web_page_preview=True
                 )
                 context.application.bot_data['presence_message_id'] = new_message.message_id
-            
         except Exception as e:
             logger.error(f"Gagal mengirim atau mengedit pesan kehadiran ke chat {chat_id}: {e}")
 
@@ -180,7 +184,7 @@ async def clear_inactive_devices(context: ContextTypes.DEFAULT_TYPE):
 
 @check_access
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Menangani perintah /start."""
+    """Menangani perintah /start dan menampilkan semua perangkat aktif."""
     global ACTIVE_DEVICES
     chat_id = update.effective_chat.id
     
@@ -188,10 +192,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         context.application.bot_data['main_chat_ids'] = set()
     context.application.bot_data['main_chat_ids'].add(chat_id)
     
+    # Kirim sinyal kehadiran dari perangkat ini
     ACTIVE_DEVICES.clear()
     ACTIVE_DEVICES.add(DEVICE_ID)
 
-    # Langsung kirim menu utama. Pesan ACTIVE| akan dikirim oleh job_queue.
+    # Beri waktu bot lain untuk mengirim sinyal kehadiran mereka
+    await asyncio.sleep(3) 
+
+    # Tampilkan menu dengan semua perangkat aktif yang terdeteksi
     await send_main_menu(update, context, sorted(list(ACTIVE_DEVICES)))
 
 async def presence_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -210,8 +218,7 @@ async def presence_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             logger.info(f"Perangkat baru terdeteksi: {device_id}")
 
         try:
-            # Karena pesan sudah dihapus, kita hanya perlu mengabaikan ini
-            pass
+            await update.effective_message.delete()
         except Exception:
             pass
 
@@ -253,12 +260,10 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         else:
             logger.error(f"Gagal menghapus pesan: {e}")
             
-    # Tangani tombol 'Kembali ke Menu Utama'
     if action in ["back_to_main_menu", "back_to_device_menu"]:
         await send_main_menu(update, context, sorted(list(ACTIVE_DEVICES)))
         return
     
-    # Tangani tombol 'Pilih Perangkat'
     if action == "select":
         selected_device = command_parts[1]
         if selected_device == DEVICE_ID:
@@ -269,7 +274,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     
     if action == "install_update":
         await context.bot.send_message(chat_id=query.message.chat_id, text="🔄 Memulai proses instalasi pembaruan. Bot akan memulai ulang setelah selesai.")
-        # Panggil update.sh tanpa argumen --force
         subprocess.Popen(['/bin/sh', os.path.join(SCRIPT_DIR, 'update.sh')])
         return
     
@@ -299,9 +303,9 @@ async def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, dev
     """Mengirim menu utama pilihan perangkat dan mengembalikan objek pesan."""
     keyboard = [[InlineKeyboardButton(device, callback_data=f"select|{device}")] for device in sorted(devices_list)]
     
-    update_script_path = os.path.join(SCRIPT_DIR, 'update.sh')
-    if os.path.exists(update_script_path):
-        keyboard.append([InlineKeyboardButton("Install Update", callback_data="install_update")])
+    # update_script_path = os.path.join(SCRIPT_DIR, 'update.sh')
+    # if os.path.exists(update_script_path):
+    #    keyboard.append([InlineKeyboardButton("Install Update", callback_data="install_update")])
         
     reply_markup = InlineKeyboardMarkup(keyboard)
     
@@ -338,7 +342,7 @@ async def send_device_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, s
     logger.info(f"Menu perintah untuk '{selected_device}' berhasil dikirim.")
 
 def main() -> None:
-    """Fungsi utama untuk menjalankan bot."""
+    """Fungsi utama untuk menjalankan bot dengan logika coba lagi."""
     token = get_token()
     if not token:
         logger.error("Token tidak ditemukan. Keluar.")
@@ -360,14 +364,28 @@ def main() -> None:
 
     logger.info("Application started. Bot sedang aktif.")
     
-    try:
-        asyncio.run(application.run_polling(allowed_updates=Update.ALL_TYPES))
-    except telegram.error.Conflict:
-        logger.warning("Token sedang digunakan oleh bot lain. Menunggu 5 detik...")
-        time.sleep(5)
-        os.execv(sys.executable, ['python3'] + sys.argv)
-    except Exception as e:
-        logger.error(f"Kesalahan tak terduga: {e}. Bot akan keluar.")
-        
+    max_retries = 5
+    initial_delay = 10
+    
+    for attempt in range(max_retries):
+        try:
+            asyncio.run(application.run_polling(poll_interval=10, timeout=10))
+            return  # Berhasil, keluar dari loop
+        except telegram.error.NetworkError as e:
+            logger.error(f"Gagal terhubung ke Telegram: {e}")
+            if attempt < max_retries - 1:
+                logger.warning(f"Mencoba lagi dalam {initial_delay} detik. (Percobaan {attempt + 1}/{max_retries})")
+                time.sleep(initial_delay)
+            else:
+                logger.error("Gagal terhubung setelah beberapa kali percobaan. Bot akan keluar.")
+                return
+        except telegram.error.Conflict:
+            logger.warning("Token sedang digunakan oleh bot lain. Menunggu 5 detik...")
+            time.sleep(5)
+            os.execv(sys.executable, ['python3'] + sys.argv)
+        except Exception as e:
+            logger.error(f"Kesalahan tak terduga: {e}. Bot akan keluar.")
+            return
+
 if __name__ == '__main__':
     main()
