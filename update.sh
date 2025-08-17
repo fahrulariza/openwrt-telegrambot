@@ -66,7 +66,7 @@ mkdir -p "$TEMP_DIR/cmd"
 
 # Daftar file yang akan diunduh
 FILES="bot.py VERSION run_bot.sh update.sh pre_run.sh restart.sh force_update.sh"
-CMD_FILES="akses.py dhcp_leases.py force_update.py interface.py openclash.py reboot.py reload_bot.py status.py update.py terminal.py cekmodule.py"
+CMD_FILES="akses.py dhcp_leases.py force_update.py interface.py openclash.py reboot.py reload_bot.py status.py update.py terminal.py cekmodule.py wan.py"
 
 # Unduh file utama
 for file in $FILES; do
