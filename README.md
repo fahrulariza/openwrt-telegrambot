@@ -85,7 +85,7 @@ pip install "python-telegram-bot[job-queue]"
 
 ### ⚙️ Panduan Instalasi
 Ikuti langkah-langkah di bawah ini untuk menginstal bot di router OpenWrt.
-Langkah 1: Kloning Repositori
+## Langkah 1: Kloning Repositori
 Masuk ke router OpenWrt melalui `SSH` atau `Terminal LuCi`, lalu jalankan perintah ini untuk mengunduh kode bot dan menyimpannya ke folder assisten di `/www/assisten/bot`:
 
 ```
@@ -98,7 +98,7 @@ atau
 1. Download manual [disini](https://github.com/fahrulariza/openwrt-telegrambot/archive/refs/heads/master.zip)
 2. Letakkan semua file ke dalam folder `/www/asissten/bot/` sturktur bisa dilihat diatas. lanjut ke Lankah 2
 
-Langkah 2: Konfigurasi Token Bot & Akses Pengguna
+## Langkah 2: Konfigurasi Token Bot & Akses Pengguna
 Buat bot Telegram baru melalui @BotFather dan dapatkan token API-nya.
 
 Buat file token.txt di folder assisten/bot/ dan masukkan token Anda di dalamnya.
@@ -128,12 +128,12 @@ chmod +x /www/assisten/bot/pre_run.sh
 chmod +x /www/assisten/bot/restart.sh
 chmod +x /www/assisten/bot/run_bot.sh
 chmod +x /www/assisten/bot/update.sh
-dos2unix +x /www/assisten/bot/force_update.sh
-dos2unix +x /www/assisten/bot/pre_run.sh
-dos2unix +x /www/assisten/bot/restart.sh
-dos2unix +x /www/assisten/bot/run_bot.sh
-dos2unix +x /www/assisten/bot/update.sh
-dos2unix +x /www/assisten/bot/bot.py
+dos2unix /www/assisten/bot/force_update.sh
+dos2unix /www/assisten/bot/pre_run.sh
+dos2unix /www/assisten/bot/restart.sh
+dos2unix /www/assisten/bot/run_bot.sh
+dos2unix /www/assisten/bot/update.sh
+dos2unix /www/assisten/bot/bot.py
 chmod +x /www/assisten/bot/bot.py
 dos2unix /www/assisten/bot/*.sh
 ```
@@ -154,7 +154,7 @@ Metode yang lebih rapi dan direkomendasikan di OpenWrt adalah membuat `init.d` s
 
 Metode ini lebih disarankan karena lebih terintegrasi dengan sistem startup OpenWrt.
 Berikut adalah contoh skrip init.d untuk bot Anda:
-File: /etc/init.d/telegram-bot
+File: `/etc/init.d/telegram-bot`
 ```
 #!/bin/sh /etc/rc.common
 
@@ -170,8 +170,9 @@ stop() {
     /www/assisten/bot/run_bot.sh stop
 }
 ```
-Setelah membuat file ini, kamu bisa mengaktifkan autostart dengan perintah:
+Setelah membuat file ini, kamu bisa mengaktifkan autostart di `terminal` dengan perintah:
 ```
+dos2unix /etc/init.d/telegram-bot
 chmod +x /etc/init.d/telegram-bot
 /etc/init.d/telegram-bot enable
 /etc/init.d/telegram-bot stop
