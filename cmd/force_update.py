@@ -7,6 +7,8 @@ import asyncio
 from telegram import Update
 from telegram.ext import ContextTypes
 
+IS_MENU_COMMAND = False
+
 logger = logging.getLogger(__name__)
 
 # Lokasi skrip force_update.sh
