@@ -4,6 +4,9 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.helpers import escape_markdown
 
+# versi modul
+VERSION = "3.5.1"
+
 IS_MENU_COMMAND = True
 
 logger = logging.getLogger(__name__)
