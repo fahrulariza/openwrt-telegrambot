@@ -4,6 +4,9 @@ from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ContextTypes
 import logging
 
+# versi modul
+VERSION = "3.5.0"
+
 DEVICE_ID = os.environ.get('DEVICE_ID', 'rumah-menteng.net')
 
 async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE, command_data: str = None) -> None:
