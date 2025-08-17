@@ -8,6 +8,8 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Message
 
+IS_MENU_COMMAND = True
+
 logger = logging.getLogger(__name__)
 
 async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE, command_data: str = None) -> None:
