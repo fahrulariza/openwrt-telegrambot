@@ -97,6 +97,7 @@ def load_commands(application: Application):
         return
 
     application.bot_data['menu_commands'] = {}
+    application.bot_data['hidden_commands'] = {}
 
     for filename in os.listdir(CMD_FOLDER):
         if filename.endswith('.py') and filename != '__init__.py':
@@ -124,6 +125,7 @@ def load_commands(application: Application):
                             application.bot_data['menu_commands'][module_name] = module
                             logger.info(f"Perintah '{module_name}' ditambahkan ke menu.")
                         else:
+                            application.bot_data['hidden_commands'][module_name] = module
                             logger.info(f"Perintah '{module_name}' tidak akan tampil di menu.")
                     else:
                         logger.info(f"Modul '{module_name}' dimuat, tetapi tidak memiliki CommandHandler.")
