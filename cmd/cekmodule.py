@@ -2,38 +2,38 @@ import os
 import logging
 from telegram import Update
 from telegram.ext import ContextTypes
+from telegram.helpers import escape_markdown
 
-# versi modul
-VERSION = "3.5.0"
-# tampil sebagai menu pilihan
 IS_MENU_COMMAND = True
 
 logger = logging.getLogger(__name__)
 
-async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE, command_data: str = None) -> None:
     """Menampilkan daftar semua modul yang dimuat."""
     
-    # Periksa apakah ada modul yang dimuat
     if not context.application.bot_data.get('menu_commands') and not context.application.bot_data.get('hidden_commands'):
         await update.message.reply_text("❌ Tidak ada modul yang terdeteksi.")
         return
 
-    # Kumpulkan daftar semua modul yang dimuat
-    all_modules = {**context.application.bot_data.get('menu_commands', {}), **context.application.bot_data.get('hidden_commands', {})}
+    all_modules = {
+        **context.application.bot_data.get('menu_commands', {}), 
+        **context.application.bot_data.get('hidden_commands', {})
+    }
     sorted_module_names = sorted(all_modules.keys())
 
-    response = "📜 **Daftar Modul yang Dimuat:**\n\n"
+    response = "📜 *Daftar Modul yang Dimuat:*\n\n"
     
     for module_name in sorted_module_names:
         module = all_modules[module_name]
         
-        # Ambil informasi versi (default: 'Tidak ada')
         version = getattr(module, 'VERSION', 'Tidak ada')
-        
-        # Ambil status menu (default: True)
         is_menu_command = getattr(module, 'IS_MENU_COMMAND', True)
         status = "MENU" if is_menu_command else "TEKS"
         
-        response += f"• **{module_name.capitalize()}** (v{version}) - `{status}`\n"
+        safe_module_name = escape_markdown(module_name.capitalize(), version=2)
+        safe_version = escape_markdown(str(version), version=2)
+        safe_status = escape_markdown(status, version=2)
+
+        response += f"• **{safe_module_name}** \(v{safe_version}\) \- \`{safe_status}\`\n"
     
-    await update.message.reply_text(response, parse_mode='Markdown')
+    await update.message.reply_text(response, parse_mode='MarkdownV2')
