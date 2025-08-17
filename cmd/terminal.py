@@ -5,6 +5,9 @@ import shlex  # Digunakan untuk memecah string perintah dengan aman
 from telegram import Update
 from telegram.ext import ContextTypes
 
+# versi modul
+VERSION = "3.5.0"
+
 IS_MENU_COMMAND = False
 
 logger = logging.getLogger(__name__)
