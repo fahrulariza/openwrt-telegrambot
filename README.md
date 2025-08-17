@@ -15,7 +15,7 @@
 ```
 /www/assisten/
         ├── bot/
-        │   ├── cmd/
+        │   ├── cmd/       <<<<<<<<<<< folder utama berisi module perintah
         │   │   ├── __init__.py
         │   │   ├── akses.py
         │   │   ├── dhcp_leases.py
@@ -25,12 +25,12 @@
         │   │   ├── reload_bot.py
         │   │   ├── status.py
         │   │   └── update.py
-        │   ├── bot.py
+        │   ├── bot.py <<<<<<<<<<<<<<< script utama untuk menerima dan menjalankan perintah. 
         │   ├── README.md
         │   ├── restart.sh
-        │   ├── run_bot.sh
-        │   ├── akses.txt
-        │   └── token.txt
+        │   ├── run_bot.sh  <<<<<<<<<< script eksekusi untuk menjalankan bot.py
+        │   ├── akses.txt <<<<<<<<<<<< berisi ID yang akan bisa mengakses perintah bot
+        │   └── token.txt <<<<<<<<<<<< berisi token bot yang akan digunakan
         └── .git/
 ```
 ## 🛠️ Penjelasan Struktur File
