@@ -2,7 +2,7 @@
 <p>Kelola router OpenWrt Anda dengan mudah melalui bot Telegram!</p>
 </div>
 
-### Penjelasan setiap fungsi module
+## Penjelasan setiap fungsi module
 
 #### terminal.py
 modul untuk mengeksekusi perintah terminal dan menampilkan hasilnya di chat telegram bot
