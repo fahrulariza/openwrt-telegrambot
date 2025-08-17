@@ -9,6 +9,9 @@ from telegram.ext import ContextTypes
 
 IS_MENU_COMMAND = False
 
+# versi modul
+VERSION = "3.5.0"
+
 logger = logging.getLogger(__name__)
 
 # Lokasi skrip force_update.sh
