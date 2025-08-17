@@ -4,6 +4,9 @@ import logging
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ContextTypes
 
+# versi modul
+VERSION = "3.5.0"
+
 logger = logging.getLogger(__name__)
 
 async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE, command_data: str) -> None:
