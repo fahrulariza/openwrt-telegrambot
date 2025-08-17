@@ -5,6 +5,8 @@ import shlex  # Digunakan untuk memecah string perintah dengan aman
 from telegram import Update
 from telegram.ext import ContextTypes
 
+IS_MENU_COMMAND = False
+
 logger = logging.getLogger(__name__)
 
 async def execute(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
