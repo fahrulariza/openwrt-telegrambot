@@ -168,6 +168,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     ACTIVE_DEVICES.clear()
     ACTIVE_DEVICES.add(DEVICE_ID)
 
+    # Langsung kirim menu utama. Pesan ACTIVE| akan dikirim oleh job_queue.
     await send_main_menu(update, context, sorted(list(ACTIVE_DEVICES)))
 
 async def presence_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -228,17 +229,12 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         else:
             logger.error(f"Gagal menghapus pesan: {e}")
             
-    # --- LOGIKA TAMBAHAN UNTUK MENANGANI TOMBOL LAMA ---
-    if action == "back_to_device_menu":
-        logger.info("Tombol 'back_to_device_menu' terdeteksi. Mengarahkan ke menu utama.")
-        await send_main_menu(update, context, sorted(list(ACTIVE_DEVICES)))
-        return
-        
-    # --- LOGIKA TOMBOL STANDAR ---
+    # Tangani tombol 'Kembali ke Menu Utama'
     if action == "back_to_main_menu":
         await send_main_menu(update, context, sorted(list(ACTIVE_DEVICES)))
         return
     
+    # Tangani tombol 'Pilih Perangkat'
     if action == "select":
         selected_device = command_parts[1]
         if selected_device == DEVICE_ID:
@@ -280,8 +276,8 @@ async def send_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, dev
     keyboard = [[InlineKeyboardButton(device, callback_data=f"select|{device}")] for device in sorted(devices_list)]
     
     update_script_path = os.path.join(SCRIPT_DIR, 'update.sh')
-    # if os.path.exists(update_script_path):
-    #    keyboard.append([InlineKeyboardButton("Install Update", callback_data="install_update")])
+    if os.path.exists(update_script_path):
+        keyboard.append([InlineKeyboardButton("Install Update", callback_data="install_update")])
         
     reply_markup = InlineKeyboardMarkup(keyboard)
     
