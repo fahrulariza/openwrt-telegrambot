@@ -8,6 +8,9 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Message
 
+# versi modul
+VERSION = "3.5.0"
+
 IS_MENU_COMMAND = True
 
 logger = logging.getLogger(__name__)
