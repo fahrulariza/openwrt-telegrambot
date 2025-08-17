@@ -7,7 +7,7 @@ from telegram.helpers import escape_markdown
 # versi modul
 VERSION = "3.5.1"
 
-IS_MENU_COMMAND = True
+IS_MENU_COMMAND = False
 
 logger = logging.getLogger(__name__)
 
