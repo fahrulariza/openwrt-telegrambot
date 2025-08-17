@@ -123,8 +123,17 @@ pip install -r requirements.txt
 Langkah 4: Jalankan Skrip Persiapan
 Skrip ini akan memastikan semua file memiliki izin eksekusi yang benar.
 ```
+chmod +x /www/assisten/bot/force_update.sh
+chmod +x /www/assisten/bot/pre_run.sh
+chmod +x /www/assisten/bot/restart.sh
 chmod +x /www/assisten/bot/run_bot.sh
 chmod +x /www/assisten/bot/update.sh
+dos2unix +x /www/assisten/bot/force_update.sh
+dos2unix +x /www/assisten/bot/pre_run.sh
+dos2unix +x /www/assisten/bot/restart.sh
+dos2unix +x /www/assisten/bot/run_bot.sh
+dos2unix +x /www/assisten/bot/update.sh
+dos2unix +x /www/assisten/bot/bot.py
 chmod +x /www/assisten/bot/bot.py
 dos2unix /www/assisten/bot/*.sh
 ```
