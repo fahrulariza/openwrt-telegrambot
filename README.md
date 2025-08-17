@@ -83,9 +83,9 @@ pip3 install paramiko
 pip install "python-telegram-bot[job-queue]"
 ```
 
-### ⚙️ Panduan Instalasi
+## ⚙️ Panduan Instalasi
 Ikuti langkah-langkah di bawah ini untuk menginstal bot di router OpenWrt.
-## Langkah 1: Kloning Repositori
+### Langkah 1: Kloning Repositori
 Masuk ke router OpenWrt melalui `SSH` atau `Terminal LuCi`, lalu jalankan perintah ini untuk mengunduh kode bot dan menyimpannya ke folder assisten di `/www/assisten/bot`:
 
 ```
@@ -98,7 +98,7 @@ atau
 1. Download manual [disini](https://github.com/fahrulariza/openwrt-telegrambot/archive/refs/heads/master.zip)
 2. Letakkan semua file ke dalam folder `/www/asissten/bot/` sturktur bisa dilihat diatas. lanjut ke Lankah 2
 
-## Langkah 2: Konfigurasi Token Bot & Akses Pengguna
+### Langkah 2: Konfigurasi Token Bot & Akses Pengguna
 Buat bot Telegram baru melalui @BotFather dan dapatkan token API-nya.
 
 Buat file token.txt di folder assisten/bot/ dan masukkan token Anda di dalamnya.
@@ -113,14 +113,14 @@ Buat file akses.txt di folder yang sama dan masukkan ID pengguna Anda.
 ```
 echo "ID_PENGGUNA_ANDA" > /www/assisten/bot/akses.txt
 ```
-Langkah 3: Instal Pustaka Python
+### Langkah 3: Instal Pustaka Python
 Masuk ke direktori bot dan instal semua pustaka yang diperlukan.
 
 ```
 cd /www/assisten/bot
 pip install -r requirements.txt
 ```
-Langkah 4: Jalankan Skrip Persiapan
+### Langkah 4: Jalankan Skrip Persiapan
 Skrip ini akan memastikan semua file memiliki izin eksekusi yang benar.
 ```
 chmod +x /www/assisten/bot/force_update.sh
@@ -143,7 +143,7 @@ cd /www/assisten/bot/cmd
 dos2unix *.py
 chmod +x *.py
 ```
-Langkah 5: Jalankan Bot Manual
+### Langkah 5: Jalankan Bot Manual
 Gunakan skrip run_bot.sh untuk memulai bot. Bot akan berjalan di latar belakang.
 ```
 /www/assisten/bot/run_bot.sh start
