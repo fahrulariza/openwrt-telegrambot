@@ -158,16 +158,28 @@ File: `/etc/init.d/telegram-bot`
 ```
 #!/bin/sh /etc/rc.common
 
-START=95
+START=99
+STOP=99
 
-start() {
-    echo "Starting Telegram Bot..."
-    /www/assisten/bot/run_bot.sh start
+USE_PROCD=1
+PROG_PATH="/www/assisten/bot/bot.py"
+PROG_USER="root"
+PROG_ARGS=""
+PROG_PID_FILE="/var/run/bot_telegram.pid"
+
+start_service() {
+    procd_open_instance
+    procd_set_param command "python3" "$PROG_PATH" $PROG_ARGS
+    procd_set_param user "$PROG_USER"
+    procd_set_param pidfile "$PROG_PID_FILE"
+    procd_set_param stdout 1
+    procd_set_param stderr 1
+    procd_close_instance
 }
 
-stop() {
-    echo "Stopping Telegram Bot..."
-    /www/assisten/bot/run_bot.sh stop
+stop_service() {
+    [ -f "$PROG_PID_FILE" ] && kill $(cat "$PROG_PID_FILE")
+    return 0
 }
 ```
 Setelah membuat file ini, kamu bisa mengaktifkan autostart di `terminal` dengan perintah:
