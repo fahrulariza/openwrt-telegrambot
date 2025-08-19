@@ -16,9 +16,11 @@ from functools import wraps
 # --- Konfigurasi Logging & Global State ---
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
+    level=logging.WARNING  # logging.WARNING hanya menampilkan WARNING atau ERROR | logging.INFO menampilkan semua log
 )
+
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.WARNING) # hanya menampilkan WARNING atau ERROR
 
 # --- Konfigurasi Perangkat & Token ---
 DEVICE_ID = socket.gethostname().strip()
