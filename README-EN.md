@@ -203,5 +203,5 @@ chmod +x /etc/init.d/telegram-bot
 /etc/init.d/telegram-bot start
 ```
 <div align="center">
-<p>Done! Now your bot is ready to use. Open Telegram and send the command <code>/start</code> ke bot Anda.</p>
+<p>Done! Now your bot is ready to use. Open Telegram and send the command <code>/start</code> to your bot.</p>
 </div>
