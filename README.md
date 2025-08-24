@@ -6,7 +6,7 @@
 ![Total Commits](https://img.shields.io/github/commit-activity/t/fahrulariza/openwrt-telegrambot)
 ![Top Language](https://img.shields.io/github/languages/top/fahrulariza/openwrt-telegrambot)
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/fahrulariza/openwrt-telegrambot/ci.yml)
-![Open Issues](https://img.shields.io/github/issues/fahrulariza/openwrt-telegrambot)
+![Open Issues]([https://img.shields.io/github/issues/fahrulariza/openwrt-telegrambot](https://github.com/fahrulariza/openwrt-telegrambot/issues))
 
 
 <h1>Asisten Bot Telegram sederhana untuk OpenWrt</h1>
