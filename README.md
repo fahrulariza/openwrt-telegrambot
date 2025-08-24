@@ -11,6 +11,8 @@
 - **Keamanan Terjamin**: Akses hanya diberikan kepada User ID yang telah disetujui.
 - **Module**: menambahkan dan menghapus module tanpa mengubah script utama hanya di folder `cmd`
 
+[![GitHub All Releases](https://img.shields.io/github/downloads/fahrulariza/openwrt-telegrambot/total)]()
+
 ### ⚙️ Struktur file Instalasi
 ```
 /www/assisten/
@@ -193,5 +195,3 @@ chmod +x /etc/init.d/telegram-bot
 <div align="center">
 <p>Selesai! Sekarang bot Anda siap digunakan. Buka Telegram dan kirim perintah <code>/start</code> ke bot Anda.</p>
 </div>
-
-[![GitHub All Releases](https://img.shields.io/github/downloads/fahrulariza/openwrt-telegrambot/total)]()
