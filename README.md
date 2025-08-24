@@ -3,6 +3,9 @@
 
 [![GitHub All Releases](https://img.shields.io/github/downloads/fahrulariza/openwrt-telegrambot/total)]()
 ![Total Commits](https://img.shields.io/github/commit-activity/t/fahrulariza/openwrt-telegrambot)
+![Top Language](https://img.shields.io/github/languages/top/fahrulariza/openwrt-telegrambot)
+![Open Issues](https://img.shields.io/github/issues/fahrulariza/openwrt-telegrambot)
+
 
 <h1>Asisten Bot Telegram sederhana untuk OpenWrt</h1>
 <p>Kelola router OpenWrt Anda dengan mudah melalui bot Telegram!</p>
