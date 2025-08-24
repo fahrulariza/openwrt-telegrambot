@@ -16,11 +16,11 @@ from functools import wraps
 # --- Konfigurasi Logging & Global State ---
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.WARNING  # logging.WARNING hanya menampilkan WARNING atau ERROR | logging.INFO menampilkan semua log
+    level=logging.WARNING
 )
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING) # hanya menampilkan WARNING atau ERROR
+logger.setLevel(logging.WARNING)
 
 # --- Konfigurasi Perangkat & Token ---
 DEVICE_ID = socket.gethostname().strip()
@@ -121,7 +121,6 @@ def load_commands(application: Application):
                         application.add_handler(CommandHandler(module_name, check_access(module.execute)))
                         logger.info(f"Perintah dimuat: /{module_name}")
 
-                        # Logika baru: cek apakah perintah harus tampil di menu
                         is_menu_command = getattr(module, 'IS_MENU_COMMAND', True)
                         if is_menu_command:
                             application.bot_data['menu_commands'][module_name] = module
@@ -148,7 +147,7 @@ async def send_presence(context: ContextTypes.DEFAULT_TYPE):
         
     LAST_SENT_PRESENCE_TEXT = current_presence_text
     
-    await asyncio.sleep(random.uniform(0, 5)) 
+    await asyncio.sleep(random.uniform(0, 5))
 
     for chat_id in context.application.bot_data.get('main_chat_ids', []):
         try:
@@ -198,7 +197,7 @@ async def clear_inactive_devices(context: ContextTypes.DEFAULT_TYPE):
 
 @check_access
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Menangani perintah /start dan menampilkan semua perangkat aktif."""
+    """Menangani perintah /start dan menampilkan menu bot."""
     global ACTIVE_DEVICES
     chat_id = update.effective_chat.id
     
@@ -206,15 +205,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         context.application.bot_data['main_chat_ids'] = set()
     context.application.bot_data['main_chat_ids'].add(chat_id)
     
-    # Kirim sinyal kehadiran dari perangkat ini
     ACTIVE_DEVICES.clear()
     ACTIVE_DEVICES.add(DEVICE_ID)
 
     # Beri waktu bot lain untuk mengirim sinyal kehadiran mereka
-    await asyncio.sleep(3) 
+    await asyncio.sleep(5)
 
-    # Tampilkan menu dengan semua perangkat aktif yang terdeteksi
-    await send_main_menu(update, context, sorted(list(ACTIVE_DEVICES)))
+    sorted_active_devices = sorted(list(ACTIVE_DEVICES))
+    
+    # Hanya perangkat pertama dalam daftar yang merespons perintah /start
+    if sorted_active_devices and sorted_active_devices[0] == DEVICE_ID:
+        await send_main_menu(update, context, sorted_active_devices)
+    else:
+        logger.info(f"Perangkat '{DEVICE_ID}' mengabaikan /start karena bukan master saat ini.")
 
 async def presence_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Menangani pesan 'ACTIVE' dari perangkat lain."""
@@ -251,8 +254,7 @@ async def reload_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             text=f"🔄 **{os.environ.get('DEVICE_ID')}** menerima sinyal pembaruan paksa. Memulai ulang bot...",
             parse_mode='Markdown'
         )
-        
-        # Jalankan skrip update.sh dengan argumen --force
+            
         subprocess.Popen(['/bin/sh', os.path.join(SCRIPT_DIR, 'update.sh'), '--force'])
         await context.application.stop()
         
@@ -355,6 +357,13 @@ async def send_device_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, s
     )
     logger.info(f"Menu perintah untuk '{selected_device}' berhasil dikirim.")
 
+async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Log kesalahan yang terjadi dari bot."""
+    if context.error and isinstance(context.error, telegram.error.Conflict):
+        logger.warning("Token bot digunakan oleh instance lain. Ini adalah perilaku yang diharapkan saat bot dihidupkan ulang.")
+    else:
+        logger.error("Terjadi kesalahan:", exc_info=context.error)
+
 def main() -> None:
     """Fungsi utama untuk menjalankan bot dengan logika coba lagi."""
     token = get_token()
@@ -373,6 +382,8 @@ def main() -> None:
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.Regex(r'^ACTIVE\|.*'), presence_handler))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.Regex(r'^RELOAD\|ALL'), reload_handler))
     
+    application.add_error_handler(error_handler)
+
     application.job_queue.run_repeating(send_presence, interval=180, first=5)
     application.job_queue.run_repeating(clear_inactive_devices, interval=600, first=10)
 
@@ -384,7 +395,7 @@ def main() -> None:
     for attempt in range(max_retries):
         try:
             asyncio.run(application.run_polling(poll_interval=10, timeout=10))
-            return  # Berhasil, keluar dari loop
+            return
         except telegram.error.NetworkError as e:
             logger.error(f"Gagal terhubung ke Telegram: {e}")
             if attempt < max_retries - 1:
