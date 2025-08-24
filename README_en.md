@@ -12,11 +12,11 @@
 </div>
 
 ## 🚀 Key Features
-- **Kontrol Penuh**: Jalankan perintah shell, pantau status sistem, dan kelola layanan langsung dari Telegram.
-- **Interactive Interface**: Menggunakan Inline Keyboard untuk navigasi yang mudah tanpa mengetik perintah manual.
-- **Instant Notifications**: Terima notifikasi real-time tentang status router Anda.
-- **Secure Access**: Akses hanya diberikan kepada User ID yang telah disetujui.
-- **Modular**: menambahkan dan menghapus module tanpa mengubah script utama hanya di folder `cmd`
+- **Full Control**: Run shell commands, monitor system status, and manage services directly from Telegram.
+- **Interactive Interface**: Use an inline keyboard for easy navigation without typing commands manually.
+- **Instant Notifications**: Receive real-time notifications about your router's status.
+- **Secure Access**: Access is only granted to approved user IDs.
+- **Modular**: Add and remove modules without changing the main script, just in the `cmd` folder.
 
 
 
@@ -24,7 +24,7 @@
 ```
 /www/assisten/
         ├── bot/
-        │   ├── cmd/       <<<<<<<<<<< folder utama berisi module perintah
+        │   ├── cmd/       <<<<<<<<<<< the main folder contains the command module
         │   │   ├── __init__.py
         │   │   ├── akses.py
         │   │   ├── dhcp_leases.py
@@ -34,31 +34,31 @@
         │   │   ├── reload_bot.py
         │   │   ├── status.py
         │   │   └── update.py
-        │   ├── bot.py <<<<<<<<<<<<<<< script utama untuk menerima dan menjalankan perintah. 
+        │   ├── bot.py <<<<<<<<<<<<<<< main script to receive and execute commands.
         │   ├── README.md
         │   ├── restart.sh
-        │   ├── run_bot.sh  <<<<<<<<<< script eksekusi untuk menjalankan bot.py
-        │   ├── akses.txt <<<<<<<<<<<< berisi ID yang akan bisa mengakses perintah bot
-        │   └── token.txt <<<<<<<<<<<< berisi token bot yang akan digunakan
+        │   ├── run_bot.sh  <<<<<<<<<< execution script to run bot.py
+        │   ├── akses.txt <<<<<<<<<<<< contains the ID that will be able to access the bot commands
+        │   └── token.txt <<<<<<<<<<<< contains the bot token to be used
         └── .git/
 ```
 ## 🛠️ File Structure Explanation
 > - **/www/assisten/bot**: This is the main directory where all bot code resides.
 > - folder **bot/**:
-> 1. **cmd/**: This folder contains all command modules executable by the bot. Setiap file .py di sini (akses.py, status.py, dll.) adalah perintah terpisah yang akan dimuat secara dinamis oleh bot.py. File __init__.py kosong diperlukan agar Python mengenali cmd sebagai sebuah paket.
+> 1. **cmd/**: This folder contains all command modules executable by the bot. Each .py file here (access.py, status.py, etc.) is a separate command that will be dynamically loaded by bot.py. An empty __init__.py file is required for Python to recognize cmd as a package.
 > 2. **bot.py**: The main bot script that runs all logic, handles Telegram connection, loads commands, and manages interaction.
 > 3. **README.md**: Contains installation guide and project description.
 > 4. **restart.sh**: Shell script to stop and restart the bot.
 > 5. **run_bot.sh**: Main script to manage the bot lifecycle (start, stop, restart).
 > 6. **akses.txt**: Text file containing list of authorized Telegram User IDs.
 > 7. **token.txt**: Text file containing your bot API token from BotFather.
-> 8. **.git/**: Direktori ini dibuat oleh Git untuk mengelola riwayat versi proyek.
+> 8. **.git/**: This directory is created by Git to manage the project's version history.
 
-This structure is clean, modular, and makes it easy to add, remove, or manage new commands without modifying the main script `bot.py` hanya uploda module ke folder `cmd`.
+This structure is clean, modular, and makes it easy to add, remove, or manage new commands without modifying the main script `bot.py` just upload the module to the `cmd` folder.
 
 ## 🛠️ Preparation
 Required Tools
-Sebelum memulai, pastikan telah menginstal tool berikut di OpenWrt :
+Before starting, make sure you have installed the following tools in OpenWrt:
 
 through terminal in OpenWrt, follow the steps below
 
@@ -93,7 +93,7 @@ pip install "python-telegram-bot[job-queue]"
 ```
 
 ## ⚙️ Installation Guide
-Ikuti langkah-langkah di bawah ini untuk menginstal bot di router OpenWrt.
+Follow the steps below to install the bot on an OpenWrt router.
 ### Step 1: Clone Repository
 Login to your OpenWrt router via `SSH` or `LuCI Terminal`, then run these commands to download the bot code and save it into the assisten folder at `/www/assisten/bot`:
 
@@ -159,10 +159,10 @@ Use run_bot.sh script to start the bot. The bot will run in background.
 ```
 
 Alternative Method (Init Script)
-A cleaner and recommended method in OpenWrt is to create `init.d` script khusus untuk bot Anda. Ini memberikan kontrol yang lebih baik (misalnya, `enable`, `disable`, `restart`).
+A cleaner and recommended method in OpenWrt is to create a custom `init.d` script for your bot. This provides more fine-grained control (e.g., `enable`, `disable`, `restart`).
 
 This method is more recommended as it integrates better with OpenWrt startup system.
-Berikut adalah contoh skrip init.d untuk bot Anda:
+Here's an example of an init.d script for your bot:
 File: `/etc/init.d/telegram-bot`
 ```
 #!/bin/sh /etc/rc.common
