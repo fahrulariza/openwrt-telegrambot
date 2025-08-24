@@ -1,8 +1,10 @@
 <div align="center">
 <img src="https://raw.githubusercontent.com/fahrulariza/openwrt-telegrambot/master/assets/logo.png" alt="OpenWrt Telegram Bot Logo" width="200"/>
 <h1>Asisten Bot Telegram sederhana untuk OpenWrt</h1>
-                [![GitHub All Releases](https://img.shields.io/github/downloads/fahrulariza/openwrt-telegrambot/total)]()
-        ![Total Commits](https://img.shields.io/github/commit-activity/t/fahrulariza/openwrt-telegrambot)
+  
+[![GitHub All Releases](https://img.shields.io/github/downloads/fahrulariza/openwrt-telegrambot/total)]()
+![Total Commits](https://img.shields.io/github/commit-activity/t/fahrulariza/openwrt-telegrambot)
+
 <p>Kelola router OpenWrt Anda dengan mudah melalui bot Telegram!</p>
 </div>
 
