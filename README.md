@@ -1,8 +1,7 @@
 <div align="center">
 <img src="https://raw.githubusercontent.com/fahrulariza/openwrt-telegrambot/master/assets/logo.png" alt="OpenWrt Telegram Bot Logo" width="200"/>
 
-[![GitHub All Releases](https://img.shields.io/github/downloads/fahrulariza/openwrt-telegrambot/total)]()
-![Total Commits](https://img.shields.io/github/commit-activity/t/fahrulariza/openwrt-telegrambot)
+
 
 <a href="https://github.com/badges/shields/pulse" alt="Activity">
     <img src="(https://img.shields.io/github/commit-activity/t/fahrulariza/openwrt-telegrambot)" /></a>
