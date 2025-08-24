@@ -12,7 +12,7 @@
 - **Module**: menambahkan dan menghapus module tanpa mengubah script utama hanya di folder `cmd`
 
 [![GitHub All Releases](https://img.shields.io/github/downloads/fahrulariza/openwrt-telegrambot/total)]()
-[![GitHub All Releases](https://img.shields.io/github/commit-activity/fahrulariza/openwrt-telegrambot/total)]()
+![Total Commits](https://img.shields.io/github/commit-activity/t/fahrulariza/openwrt-telegrambot)
 
 ### ⚙️ Struktur file Instalasi
 ```
