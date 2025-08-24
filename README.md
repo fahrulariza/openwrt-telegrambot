@@ -1,6 +1,7 @@
 <div align="center">
 <img src="https://upload.wikimedia.org/wikipedia/commons/9/92/Openwrt_Logo.svg" alt="OpenWrt Telegram Bot Logo" width="200"/>
 
+![License](https://img.shields.io/github/license/fahrulariza/openwrt-telegrambot)
 [![GitHub All Releases](https://img.shields.io/github/downloads/fahrulariza/openwrt-telegrambot/total)]()
 ![Total Commits](https://img.shields.io/github/commit-activity/t/fahrulariza/openwrt-telegrambot)
 ![Top Language](https://img.shields.io/github/languages/top/fahrulariza/openwrt-telegrambot)
