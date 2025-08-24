@@ -3,7 +3,7 @@
 
 ![License](https://img.shields.io/github/license/fahrulariza/openwrt-telegrambot)
 [![GitHub All Releases](https://img.shields.io/github/downloads/fahrulariza/openwrt-telegrambot/total)](https://github.com/fahrulariza/openwrt-telegrambot/releases)
-![Total Commits]([https://img.shields.io/github/commit-activity/t/fahrulariza/openwrt-telegrambot](https://github.com/fahrulariza/openwrt-telegrambot/releases)
+![Total Commits](https://github.com/fahrulariza/openwrt-telegrambot/releases)
 ![Top Language](https://img.shields.io/github/languages/top/fahrulariza/openwrt-telegrambot)
 [![Open Issues](https://img.shields.io/github/issues/fahrulariza/openwrt-telegrambot)](https://github.com/fahrulariza/openwrt-telegrambot/issues)
 
