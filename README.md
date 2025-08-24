@@ -12,8 +12,7 @@
 - **Module**: menambahkan dan menghapus module tanpa mengubah script utama hanya di folder `cmd`
 
 [![GitHub All Releases](https://img.shields.io/github/downloads/fahrulariza/openwrt-telegrambot/total)]()
-    <a href="https://github.com/badges/shields/pulse" alt="Activity">
-        <img src="https://img.shields.io/github/commit-activity/m/badges/shields" /></a>
+[![GitHub All Releases](https://img.shields.io/github/commit-activity/fahrulariza/openwrt-telegrambot/total)]()
 
 ### ⚙️ Struktur file Instalasi
 ```
