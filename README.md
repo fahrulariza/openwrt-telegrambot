@@ -11,6 +11,8 @@
 <p>Kelola router OpenWrt Anda dengan mudah melalui bot Telegram!</p>
 </div>
 
+Click here for English instructions [here](https://github.com/fahrulariza/openwrt-telegrambot/archive/refs/heads/master.zip)
+
 ## 🚀 Fitur Utama
 - **Kontrol Penuh**: Jalankan perintah shell, pantau status sistem, dan kelola layanan langsung dari Telegram.
 - **Antarmuka Interaktif**: Menggunakan Inline Keyboard untuk navigasi yang mudah tanpa mengetik perintah manual.
