@@ -4,8 +4,8 @@
 [![GitHub All Releases](https://img.shields.io/github/downloads/fahrulariza/openwrt-telegrambot/total)]()
 ![Total Commits](https://img.shields.io/github/commit-activity/t/fahrulariza/openwrt-telegrambot)
 
-    <a href="https://github.com/badges/shields/pulse" alt="Activity">
-        <img src="(https://img.shields.io/github/commit-activity/t/fahrulariza/openwrt-telegrambot)" /></a>
+<a href="https://github.com/badges/shields/pulse" alt="Activity">
+    <img src="(https://img.shields.io/github/commit-activity/t/fahrulariza/openwrt-telegrambot)" /></a>
 
 
 <h1>Asisten Bot Telegram sederhana untuk OpenWrt</h1>
